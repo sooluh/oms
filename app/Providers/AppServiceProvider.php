@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\Page;
 use App\Models\User;
 use App\Settings\AppSettings;
 use Filament\Support\Colors\Color;
@@ -18,16 +19,7 @@ class AppServiceProvider extends ServiceProvider
         /**
          * Share app settings to global blade
          */
-        try {
-            $app = app(AppSettings::class);
-            $app->contact = (object) [
-                'email' => $app->email[0]['email'],
-                'phone' => $app->phone[0]['number'],
-            ];
-
-            View::share('app', $app);
-        } catch (\Exception $error) {
-        }
+        View::share('app', app(AppSettings::class));
 
         /**
          * Set filament color
@@ -40,5 +32,6 @@ class AppServiceProvider extends ServiceProvider
          * Auto set enhancer ID
          */
         User::creating(fn ($user) => $user->enhancer_id = auth()->id());
+        Page::creating(fn ($user) => $user->enhancer_id = auth()->id());
     }
 }

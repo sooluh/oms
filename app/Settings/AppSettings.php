@@ -13,6 +13,8 @@ class AppSettings extends Settings
 
     public string $region;
 
+    public ?string $logo;
+
     public string $address;
 
     public array $email;
