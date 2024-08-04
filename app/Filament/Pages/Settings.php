@@ -14,13 +14,9 @@ class Settings extends SettingsPage
 
     protected static ?string $slug = 'settings';
 
-    protected static ?string $navigationGroup = 'Kelola';
-
     protected static ?string $navigationIcon = 'heroicon-o-cog-6-tooth';
 
     protected static ?string $title = 'Pengaturan';
-
-    protected static ?int $navigationSort = 2;
 
     public function getFormActions(): array
     {

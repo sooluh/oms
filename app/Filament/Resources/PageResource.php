@@ -21,13 +21,9 @@ class PageResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'name';
 
-    protected static ?string $navigationGroup = 'Kelola';
-
     protected static ?string $navigationIcon = 'heroicon-o-circle-stack';
 
     protected static ?string $modelLabel = 'Halaman';
-
-    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
