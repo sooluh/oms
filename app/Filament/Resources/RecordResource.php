@@ -22,6 +22,14 @@ class RecordResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-folder';
 
+    public static function getModelLabel(): string
+    {
+        $slug = request()->query('slug');
+        $record = RecordService::getInstance($slug);
+
+        return $record->getPage()->title;
+    }
+
     public static function form(Form $form): Form
     {
         $slug = request()->query('slug');
