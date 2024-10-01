@@ -41,12 +41,10 @@ class RecordResource extends Resource
     public static function table(Table $table): Table
     {
         $slug = request()->query('slug');
-        $page = RecordService::getInstance($slug)->getPage();
+        $columns = RecordService::getInstance($slug)->columnBuilder();
 
         return $table
-            ->columns([
-                // TODO:
-            ])
+            ->columns($columns)
             ->filters([
                 // TODO:
             ])

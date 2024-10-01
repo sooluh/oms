@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('records', function (Blueprint $table) {
             $table->id();
             $table->foreignId('page_id')->constrained('pages')->cascadeOnDelete();
-            $table->text('identifier');
+            $table->string('identifier');
             $table->json('data')->default('{}');
             $table->foreignId('enhancer_id')->nullable()->constrained('users')->cascadeOnDelete();
             $table->timestamps();

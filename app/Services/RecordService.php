@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Page;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Tables;
 
 class RecordService
 {
@@ -45,15 +46,17 @@ class RecordService
                     ->label($column->label)
                     ->schema([
                         Forms\Components\TextInput::make('filename')
-                            ->label('Nama Berkas')
-                            ->required(),
+                            ->label('Nama Berkas'),
 
                         Forms\Components\TextInput::make('url')
                             ->label('Tautan')
-                            ->url()
-                            ->required(),
+                            ->url(),
                     ])
                     ->required((bool) $column->is_required)
+                    ->defaultItems(3)
+                    ->addable(false)
+                    ->deletable(false)
+                    ->reorderable(false)
                     ->columns(2)
                     ->columnSpan('full');
             }
@@ -86,5 +89,26 @@ class RecordService
                 ])
                 ->columns(2),
         ]);
+    }
+
+    public function columnBuilder()
+    {
+        $columns = collect($this->page->columns)->map(function ($column) {
+            $column = (object) $column;
+
+            return $column;
+        });
+
+        $second = $columns->get(1);
+
+        return [
+            Tables\Columns\TextColumn::make('identifier')
+                ->label($columns->first()->label)
+                ->searchable()
+                ->sortable(),
+
+            Tables\Columns\TextColumn::make("data.{$second->key}")
+                ->label($second->label),
+        ];
     }
 }

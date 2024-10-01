@@ -59,6 +59,7 @@ class PageResource extends Resource
                             ->schema([
                                 Forms\Components\FileUpload::make('logo')
                                     ->label('Logo')
+                                    ->helperText('Jika kosong, maka menggunakan logo situs.')
                                     ->image()
                                     ->optimize('webp')
                                     ->directory('pages'),
