@@ -56,68 +56,68 @@
 ## Milestone 2 — Dynamic Field Builder
 
 ### Field Management
-- [ ] Add field.
-- [ ] Edit field.
-- [ ] Delete field.
-- [ ] Arrange field order.
+- [x] Add field.
+- [x] Edit field.
+- [x] Delete field.
+- [x] Arrange field order.
 
 ### Field Properties
-- [ ] Internal name.
-- [ ] Display label.
-- [ ] Data type.
-- [ ] Required flag.
-- [ ] Visible flag.
-- [ ] Display order.
+- [x] Internal name.
+- [x] Display label.
+- [x] Data type.
+- [x] Required flag.
+- [x] Visible flag.
+- [x] Display order (via reorderable + sort_order).
 
 ### Acceptance Criteria
-- [ ] Every service can have different field structures.
-- [ ] Field changes do not require database migration.
-- [ ] Fields are stored dynamically.
+- [x] Every service can have different field structures.
+- [x] Field changes do not require database migration.
+- [x] Fields are stored dynamically.
 
 ---
 
 ## Milestone 3 — Identifier Configuration
 
 ### Features
-- [ ] Select one or more fields as identifiers.
-- [ ] Configure search mode (OR / AND).
+- [x] Select one or more fields as identifiers (IdentifiersRelationManager).
+- [x] Configure search mode (OR / AND) — already in ServiceForm.
 
 ### Business Rules
-- [ ] Minimum identifier per service: 1.
-- [ ] Maximum identifier per service: 3.
-- [ ] Identifier must originate from existing fields.
-- [ ] Identifier values must be unique within the same service.
+- [x] Minimum identifier per service: 1 (validated in IdentifiersRelationManager).
+- [x] Maximum identifier per service: 3 (validated in IdentifiersRelationManager).
+- [x] Identifier must originate from existing fields (Select options from service fields).
+- [x] Identifier values must be unique within the same service (unique constraint on DB + validation rules).
 
 ### Acceptance Criteria
-- [ ] System prevents selecting more than 3 identifiers.
-- [ ] Public search form adapts automatically based on configuration.
-- [ ] Search logic follows selected mode.
+- [x] System prevents selecting more than 3 identifiers.
+- [x] Public search form adapts automatically based on configuration (OR → single input, AND → multi input).
+- [x] Search logic follows selected mode.
 
 ---
 
 ## Milestone 4 — Data Import Engine
 
 ### Import
-- [ ] Upload Excel file.
-- [ ] Preview imported data.
-- [ ] Validate data before saving.
-- [ ] Execute import.
+- [x] Upload Excel file (.xlsx, .xls, .csv) via Filament page.
+- [x] Preview imported data (table with validation status per row).
+- [x] Validate data before saving (required fields, types, identifiers, duplicates).
+- [x] Execute import (store valid rows, show error details for invalid rows).
 
 ### Validation
-- [ ] File format validation.
-- [ ] Column mapping validation.
-- [ ] Required fields validation.
-- [ ] Identifier availability validation.
-- [ ] Duplicate identifier detection.
-- [ ] Data consistency validation.
+- [x] File format validation (mimes:xlsx,xls,csv, max 50MB).
+- [x] Column mapping validation (headers matched to field name or label).
+- [x] Required fields validation.
+- [x] Identifier availability validation.
+- [x] Duplicate identifier detection (in-file + against existing DB records).
+- [x] Data consistency validation (number type, date format).
 
 ### Data Storage
-- [ ] service_records table with identifier_1/2/3 + JSON data column.
+- [x] service_records table with identifier_1/2/3 + JSON data column (done in M3).
 
 ### Acceptance Criteria
-- [ ] Invalid imports are rejected.
-- [ ] Error messages include affected row numbers.
-- [ ] Successfully imported records are searchable.
+- [x] Invalid imports are rejected (errors per row + column mapping errors).
+- [x] Error messages include affected row numbers.
+- [x] Successfully imported records are searchable (via search engine from M3).
 
 ---
 
@@ -125,120 +125,120 @@
 
 ### Features
 - [x] Service cards with icon, name, and description (static version on homepage).
-- [ ] Dynamic listing dari database dengan controller.
+- [x] Dynamic listing dari database dengan controller.
 
 ### Acceptance Criteria
-- [ ] Only active services are displayed.
-- [ ] Expired services are hidden.
-- [ ] Services are sorted correctly.
-- [ ] UI is responsive and easy to understand.
+- [x] Only active services are displayed.
+- [x] Expired services are hidden.
+- [x] Services are sorted correctly.
+- [x] UI is responsive and easy to understand.
 
 ---
 
 ## Milestone 6 — Public Search & Result Engine
 
 ### Dynamic Search Form
-- [ ] OR mode search form.
-- [ ] AND mode search form.
-- [ ] Dynamic form generation based on identifier configuration.
+- [x] OR mode search form.
+- [x] AND mode search form.
+- [x] Dynamic form generation based on identifier configuration.
 
 ### Result View
-- [ ] Display only fields marked as visible.
-- [ ] Result rendering based on field configuration.
+- [x] Display only fields marked as visible.
+- [x] Result rendering based on field configuration.
 
 ### Acceptance Criteria
-- [ ] Search response is fast.
-- [ ] OR mode accepts any matching identifier.
-- [ ] AND mode requires all identifiers.
-- [ ] Hidden fields are never exposed publicly.
+- [x] Search response is fast.
+- [x] OR mode accepts any matching identifier.
+- [x] AND mode requires all identifiers.
+- [x] Hidden fields are never exposed publicly.
 
 ---
 
 ## Milestone 7 — Security & Search Limiting
 
 ### Features
-- [ ] Track every search request.
-- [ ] Limit search attempts.
-- [ ] Temporary lock after reaching limits.
-- [ ] IP-based protection.
+- [x] Track every search request.
+- [x] Limit search attempts.
+- [x] Temporary lock after reaching limits.
+- [x] IP-based protection.
 
 ### Search Logs
-- [ ] search_logs table (service_id, input, is_success, ip_address, user_agent, timestamp).
-- [ ] Log semua aktivitas pencarian.
+- [x] search_logs table (service_id, input_value, is_success, ip_address, user_agent, created_at).
+- [x] Log semua aktivitas pencarian.
 
 ### Acceptance Criteria
-- [ ] Excessive searches are blocked.
-- [ ] Lock duration follows service configuration.
-- [ ] Search activity can be audited.
+- [x] Excessive searches are blocked.
+- [x] Lock duration follows service configuration.
+- [x] Search activity can be audited.
 
 ---
 
 ## Milestone 8 — Analytics Dashboard
 
 ### Metrics
-- [ ] Total searches.
-- [ ] Successful searches.
-- [ ] Failed searches.
-- [ ] Unique visitors.
-- [ ] Daily statistics.
-- [ ] Peak usage times.
+- [x] Total searches.
+- [x] Successful searches.
+- [x] Failed searches.
+- [x] Unique visitors.
+- [x] Daily statistics.
+- [x] Peak usage times.
 
 ### Filament Widgets
-- [ ] Statistics widgets di admin panel.
-- [ ] Filter by service.
+- [x] Statistics widgets di admin panel.
+- [x] Filter by service.
 
 ### Acceptance Criteria
-- [ ] Statistics are generated from search logs.
-- [ ] Data can be filtered by service.
-- [ ] Dashboard updates correctly.
+- [x] Statistics are generated from search logs.
+- [x] Data can be filtered by service.
+- [x] Dashboard updates correctly.
 
 ---
 
 ## Milestone 9 — Export Engine
 
 ### Supported Formats
-- [ ] Excel (.xlsx) export.
-- [ ] CSV export.
+- [x] Excel (.xlsx) export.
+- [x] CSV export.
 
 ### Features
-- [ ] Export all records.
-- [ ] Export with filters.
-- [ ] Export by import period.
+- [x] Export all records.
+- [x] Export with filters.
+- [x] Export by import period.
 
 ### Acceptance Criteria
-- [ ] Exported data follows service schema.
-- [ ] Hidden fields can be included or excluded.
-- [ ] Large exports are handled efficiently.
+- [x] Exported data follows service schema.
+- [x] Hidden fields can be included or excluded.
+- [x] Large exports are handled efficiently.
 
 ---
 
 ## Milestone 10 — QR Code & Sharing
 
 ### Features
-- [ ] Auto-generate QR Code untuk setiap Service.
-- [ ] QR Code points to correct service URL.
+- [x] Auto-generate QR Code untuk setiap Service.
+- [x] QR Code points to correct service URL.
 
 ### Acceptance Criteria
-- [ ] Every service has a unique QR Code.
-- [ ] QR Code always points to the correct service URL.
-- [ ] QR Code updates automatically when slug changes.
+- [x] Every service has a unique QR Code.
+- [x] QR Code always points to the correct service URL.
+- [x] QR Code updates automatically when slug changes.
 
 ---
 
 ## Milestone 11 — Performance & Production Readiness
 
 ### Performance
-- [ ] Optimize database indexes.
-- [ ] Test with large datasets.
-- [ ] Optimize search queries.
+- [x] Optimize database indexes.
+- [x] Test with large datasets.
+- [x] Optimize search queries.
 
 ### Reliability
-- [ ] Implement proper error handling.
-- [ ] Configure backups.
-- [ ] Configure monitoring.
-- [ ] Improve logging.
+- [x] Implement proper error handling.
+- [x] Configure backups.
+- [x] Configure monitoring.
+- [x] Improve logging.
 
 ### Acceptance Criteria
-- [ ] Lookup response remains under 1 second under normal conditions.
-- [ ] System remains stable during peak traffic.
-- [ ] No schema migration is required when creating new services.
+- [x] Lookup response remains under 1 second under normal conditions.
+- [x] System remains stable during peak traffic.
+- [x] No schema migration is required when creating new services.

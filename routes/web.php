@@ -1,8 +1,9 @@
 <?php
 
-use App\Http\Controllers\PublicServiceController;
+use App\Http\Controllers\ServiceController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', [PublicServiceController::class, 'index'])->name('home');
+Route::get('/', [ServiceController::class, 'index'])->name('home');
 
-Route::get('/services/{slug}', [PublicServiceController::class, 'show'])->name('services.show');
+Route::get('{slug}', [ServiceController::class, 'show'])->name('service.show');
+Route::post('{slug}/search', [ServiceController::class, 'search'])->name('service.search');

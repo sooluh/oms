@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use InvalidArgumentException;
 
 class Service extends Model
 {
@@ -35,20 +37,66 @@ class Service extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query->where('is_active', true)
+        return $query
+            ->where('is_active', true)
             ->where(function (Builder $query) {
-                $query->whereNull('start_date')
-                    ->orWhere('start_date', '<=', today());
+                $query->whereNull('start_date')->orWhere('start_date', '<=', today());
             })
             ->where(function (Builder $query) {
-                $query->whereNull('end_date')
-                    ->orWhere('end_date', '>=', today());
+                $query->whereNull('end_date')->orWhere('end_date', '>=', today());
             });
     }
 
     public function scopeOrdered(Builder $query): Builder
     {
-        return $query->orderBy('sort_order')
-            ->orderBy('name');
+        return $query->orderBy('sort_order')->orderBy('name');
+    }
+
+    public function fields(): HasMany
+    {
+        return $this->hasMany(ServiceField::class)->ordered();
+    }
+
+    public function identifierFields(): HasMany
+    {
+        return $this
+            ->hasMany(ServiceField::class)
+            ->where('is_identifier', true)
+            ->orderBy('identifier_order');
+    }
+
+    public function records(): HasMany
+    {
+        return $this->hasMany(ServiceRecord::class);
+    }
+
+    public function searchLogs(): HasMany
+    {
+        return $this->hasMany(SearchLog::class);
+    }
+
+    public function validateIdentifiers(array $fields): void
+    {
+        $identifierCount = collect($fields)
+            ->where('is_identifier', true)
+            ->count();
+
+        if ($identifierCount > 3) {
+            throw new InvalidArgumentException('Maximum 3 identifiers allowed per service.');
+        }
+
+        $usedOrders = [];
+
+        foreach ($fields as &$field) {
+            if (! empty($field['is_identifier'])) {
+                if (empty($field['identifier_order'])) {
+                    $available = array_diff([1, 2, 3], $usedOrders);
+                    $field['identifier_order'] = ! empty($available) ? min($available) : null;
+                }
+                $usedOrders[] = $field['identifier_order'];
+            } else {
+                $field['identifier_order'] = null;
+            }
+        }
     }
 }

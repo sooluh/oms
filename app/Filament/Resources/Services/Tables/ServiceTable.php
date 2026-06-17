@@ -11,61 +11,46 @@ use Filament\Tables\Columns\ToggleColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
-use Guava\IconPicker\Tables\Columns\IconColumn as GuavaIconColumn;
 
 class ServiceTable
 {
     public static function configure(Table $table): Table
     {
         return $table
+            ->defaultSort('sort_order')
+            ->reorderable('sort_order')
             ->columns([
-                GuavaIconColumn::make('icon')
-                    ->label('Icon')
-                    ->size('lg'),
-
                 TextColumn::make('name')
                     ->label('Name')
-                    ->searchable()
-                    ->sortable(),
-
-                TextColumn::make('slug')
-                    ->label('Slug')
-                    ->searchable()
-                    ->sortable(),
-
-                ToggleColumn::make('is_active')
-                    ->label('Active'),
+                    ->searchable(),
 
                 TextColumn::make('search_mode')
                     ->label('Mode')
                     ->badge(),
 
                 TextColumn::make('start_date')
-                    ->label('Starts')
+                    ->label('Start Date')
                     ->date()
-                    ->sortable(),
+                    ->placeholder('—'),
 
                 TextColumn::make('end_date')
-                    ->label('Ends')
+                    ->label('End Date')
                     ->date()
-                    ->sortable(),
+                    ->placeholder('—'),
 
-                TextColumn::make('sort_order')
-                    ->label('Order')
-                    ->numeric()
-                    ->sortable(),
-
+                ToggleColumn::make('is_active')
+                    ->label('Active'),
             ])
-            ->defaultSort('sort_order')
             ->filters([
                 TernaryFilter::make('is_active')
                     ->label('Active Status'),
 
                 SelectFilter::make('search_mode')
                     ->label('Search Mode')
+                    ->native(false)
                     ->options([
-                        'OR' => 'OR Mode',
-                        'AND' => 'AND Mode',
+                        'OR' => 'OR',
+                        'AND' => 'AND',
                     ]),
             ])
             ->recordActions([
