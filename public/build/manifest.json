@@ -172,7 +172,7 @@
     "src": "_inter-600-normal-plRanbMR.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-CeJIKDq7.css",
+    "file": "assets/app-CbF_X-6Y.css",
     "name": "app",
     "names": [
       "app.css"
@@ -181,7 +181,7 @@
     "isEntry": true
   },
   "resources/css/filament/studio/theme.css": {
-    "file": "assets/theme-C-OrQCZe.css",
+    "file": "assets/theme-CiebOb8A.css",
     "name": "theme",
     "names": [
       "theme.css"
@@ -190,7 +190,7 @@
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-C_wIPWsr.js",
+    "file": "assets/app-C0v90Dri.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

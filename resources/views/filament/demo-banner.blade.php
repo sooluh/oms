@@ -19,8 +19,13 @@
         }
     }
 
-    .fi-topbar-ctn {
-        top: 2.75rem;
+    .fi-topbar-ctn,
+    .fi-no-database.fi-modal-slide-over > .fi-modal-window-ctn {
+        top: 2.75rem !important;
+    }
+
+    .fi-no {
+        top: calc(2.75rem + 1rem) !important;
     }
 </style>
 

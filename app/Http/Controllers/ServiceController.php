@@ -30,33 +30,47 @@ class ServiceController extends Controller
         $identifiers = $service->identifierFields()->get();
         $cryptoService = app(CryptoService::class);
         $isOpen = $service->isWithinDateRange();
+        $settings = app(AppSettings::class);
 
-        return view('pages.search', compact('service', 'identifiers', 'cryptoService', 'isOpen'));
+        return view('pages.search', compact('service', 'identifiers', 'cryptoService', 'isOpen', 'settings'));
     }
 
     public function search(Request $request, string $slug)
     {
+        /** @var AppSettings $settings */
+        $settings = app(AppSettings::class);
+
         /** @var CryptoService $crypto */
         $crypto = app(CryptoService::class);
 
-        try {
-            $decrypted = $crypto->decryptRequest($request->getContent());
-        } catch (\RuntimeException $e) {
-            return response()->json(['error' => 'Decryption failed.'], 400);
+        $service = Service::active()->where('slug', $slug)->firstOrFail();
+
+        if ($settings->encryption_enabled) {
+            try {
+                $decrypted = $crypto->decryptRequest($request->getContent());
+            } catch (\RuntimeException $e) {
+                return response()->json(['error' => 'Decryption failed.'], 400);
+            }
+
+            $formData = $decrypted['data'];
+            $aesKey = $decrypted['aes_key'];
+        } else {
+            $formData = $request->all();
+            $aesKey = null;
         }
 
-        $formData = $decrypted['data'];
-        $aesKey = $decrypted['aes_key'];
-
-        $service = Service::active()->where('slug', $slug)->firstOrFail();
         $identifiers = $service->identifierFields()->get();
 
         if (! $service->isWithinDateRange()) {
-            $encrypted = $crypto->encryptResponse([
+            $response = [
                 'message' => 'This service is not currently open for searches.',
-            ], $aesKey);
+            ];
 
-            return response($encrypted, 403, ['Content-Type' => 'application/octet-stream']);
+            if ($settings->encryption_enabled) {
+                return response($crypto->encryptResponse($response, $aesKey), 403, ['Content-Type' => 'application/octet-stream']);
+            }
+
+            return response()->json($response, 403);
         }
 
         $rules = [];
@@ -84,11 +98,15 @@ class ServiceController extends Controller
         ])->toArray());
 
         if ($validator->fails()) {
-            $encrypted = $crypto->encryptResponse([
+            $response = [
                 'errors' => $validator->errors()->toArray(),
-            ], $aesKey);
+            ];
 
-            return response($encrypted, 422, ['Content-Type' => 'application/octet-stream']);
+            if ($settings->encryption_enabled) {
+                return response($crypto->encryptResponse($response, $aesKey), 422, ['Content-Type' => 'application/octet-stream']);
+            }
+
+            return response()->json($response, 422);
         }
 
         $validated = $validator->validated();
@@ -118,11 +136,15 @@ class ServiceController extends Controller
 
                 $diffInMinutes = max(1, $diffInMinutes);
 
-                $encrypted = $crypto->encryptResponse([
+                $response = [
                     'lockout' => "Too many failed search attempts. Access temporarily blocked. Please try again in {$diffInMinutes} minute(s).",
-                ], $aesKey);
+                ];
 
-                return response($encrypted, 429, ['Content-Type' => 'application/octet-stream']);
+                if ($settings->encryption_enabled) {
+                    return response($crypto->encryptResponse($response, $aesKey), 429, ['Content-Type' => 'application/octet-stream']);
+                }
+
+                return response()->json($response, 429);
             }
         }
 
@@ -173,8 +195,10 @@ class ServiceController extends Controller
                 'false_label' => $field->false_label,
             ])];
 
-        $encrypted = $crypto->encryptResponse($responseData, $aesKey);
+        if ($settings->encryption_enabled) {
+            return response($crypto->encryptResponse($responseData, $aesKey), 200, ['Content-Type' => 'application/octet-stream']);
+        }
 
-        return response($encrypted, 200, ['Content-Type' => 'application/octet-stream']);
+        return response()->json($responseData);
     }
 }

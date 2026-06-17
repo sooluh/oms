@@ -212,6 +212,7 @@ document.addEventListener("DOMContentLoaded", function () {
     var PUBLIC_KEY_BASE64 = form.dataset.publicKey;
     var SEARCH_URL = form.dataset.searchUrl;
     var SEARCH_MODE = form.dataset.searchMode;
+    var ENCRYPTION_ENABLED = form.dataset.encryptionEnabled === "true";
 
     form.addEventListener("submit", async function (e) {
         e.preventDefault();
@@ -227,61 +228,104 @@ document.addEventListener("DOMContentLoaded", function () {
         submitBtn.textContent = "Searching...";
 
         try {
-            if (!window.crypto.subtle) {
-                var clone = document
-                    .getElementById("tmpl-error")
-                    .content.cloneNode(true);
-                clone.firstElementChild.textContent =
-                    "Your browser does not support the required encryption features.";
-                resultsContainer.appendChild(clone);
-
-                return;
-            }
-
             var payload = buildPayload(e.target, SEARCH_MODE);
-            var encrypted = await encryptRequest(payload, PUBLIC_KEY_BASE64);
 
-            var response = await fetch(SEARCH_URL, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/octet-stream",
-                    Accept: "application/octet-stream",
-                },
-                body: encrypted.blob,
-            });
+            var response;
 
-            var responseBuffer = await response.arrayBuffer();
+            if (ENCRYPTION_ENABLED) {
+                if (!window.crypto.subtle) {
+                    var clone = document
+                        .getElementById("tmpl-error")
+                        .content.cloneNode(true);
+                    clone.firstElementChild.textContent =
+                        "Your browser does not support the required encryption features.";
+                    resultsContainer.appendChild(clone);
 
-            if (!response.ok) {
-                if (responseBuffer.byteLength > 12) {
-                    try {
-                        var errorData = await decryptResponse(
-                            new Uint8Array(responseBuffer),
-                            encrypted.aesKey,
-                        );
+                    return;
+                }
+
+                var encrypted = await encryptRequest(
+                    payload,
+                    PUBLIC_KEY_BASE64,
+                );
+
+                response = await fetch(SEARCH_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/octet-stream",
+                        Accept: "application/octet-stream",
+                    },
+                    body: encrypted.blob,
+                });
+
+                var responseBuffer = await response.arrayBuffer();
+
+                if (!response.ok) {
+                    if (responseBuffer.byteLength > 12) {
+                        try {
+                            var errorData = await decryptResponse(
+                                new Uint8Array(responseBuffer),
+                                encrypted.aesKey,
+                            );
+                            renderError(errorData);
+
+                            return;
+                        } catch (_) {}
+                    }
+
+                    var clone = document
+                        .getElementById("tmpl-error")
+                        .content.cloneNode(true);
+                    clone.firstElementChild.textContent =
+                        "Request failed (status " +
+                        response.status +
+                        "). Please try again.";
+                    resultsContainer.appendChild(clone);
+
+                    return;
+                }
+
+                var data = await decryptResponse(
+                    new Uint8Array(responseBuffer),
+                    encrypted.aesKey,
+                );
+                renderResults(data, resultsContainer);
+            } else {
+                response = await fetch(SEARCH_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Accept: "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                if (!response.ok) {
+                    var errorData = await response.json().catch(function () {
+                        return null;
+                    });
+
+                    if (errorData) {
                         renderError(errorData);
 
                         return;
-                    } catch (_) {}
+                    }
+
+                    var clone = document
+                        .getElementById("tmpl-error")
+                        .content.cloneNode(true);
+                    clone.firstElementChild.textContent =
+                        "Request failed (status " +
+                        response.status +
+                        "). Please try again.";
+                    resultsContainer.appendChild(clone);
+
+                    return;
                 }
 
-                var clone = document
-                    .getElementById("tmpl-error")
-                    .content.cloneNode(true);
-                clone.firstElementChild.textContent =
-                    "Request failed (status " +
-                    response.status +
-                    "). Please try again.";
-                resultsContainer.appendChild(clone);
-
-                return;
+                var data = await response.json();
+                renderResults(data, resultsContainer);
             }
-
-            var data = await decryptResponse(
-                new Uint8Array(responseBuffer),
-                encrypted.aesKey,
-            );
-            renderResults(data, resultsContainer);
         } catch (error) {
             var clone = document
                 .getElementById("tmpl-error")

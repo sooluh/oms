@@ -6,6 +6,7 @@ use App\Settings\AppSettings;
 use BackedEnum;
 use Filafly\Icons\Phosphor\Enums\Phosphor;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Pages\SettingsPage;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -48,6 +49,15 @@ class ManageAppSettings extends SettingsPage
                             ->label('Homepage Subtitle')
                             ->required()
                             ->maxLength(255),
+                    ]),
+
+                Section::make('Security')
+                    ->description('Manage encryption and security settings for public searches.')
+                    ->schema([
+                        Toggle::make('encryption_enabled')
+                            ->label('Encrypt search payloads')
+                            ->helperText('When enabled, search requests and responses on the public page will be encrypted using RSA + AES.')
+                            ->inline(false),
                     ]),
             ]);
     }

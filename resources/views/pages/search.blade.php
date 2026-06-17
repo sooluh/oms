@@ -50,9 +50,12 @@
             </div>
         @else
             <div class="mt-10 rounded-xl border border-hairline bg-surface-card p-8">
-                <form id="search-form" data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}"
+                <form id="search-form"
                     data-search-url="{{ route('service.search', $service->slug) }}"
-                    data-search-mode="{{ $service->search_mode->value }}" class="space-y-5">
+                    data-search-mode="{{ $service->search_mode->value }}"
+                    data-encryption-enabled="{{ $settings->encryption_enabled ? 'true' : 'false' }}"
+                    @if ($settings->encryption_enabled) data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}" @endif
+                    class="space-y-5">
 
                     @if ($service->search_mode === SearchMode::Or)
                         <div>

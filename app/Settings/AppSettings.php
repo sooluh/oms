@@ -14,6 +14,8 @@ class AppSettings extends Settings
 
     public string $subtitle;
 
+    public bool $encryption_enabled = false;
+
     public static function group(): string
     {
         return 'app';

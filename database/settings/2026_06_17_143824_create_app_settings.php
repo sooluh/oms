@@ -10,5 +10,6 @@ return new class extends SettingsMigration
         $this->migrator->add('app.school_website', 'https://example.com');
         $this->migrator->add('app.title', 'Check Information Self Service');
         $this->migrator->add('app.subtitle', 'Choose a service to check your information quickly and easily.');
+        $this->migrator->add('app.encryption_enabled', false);
     }
 };
