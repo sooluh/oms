@@ -20,9 +20,11 @@
     <footer class="mx-auto max-w-2xl px-4 pb-8 pt-4 sm:px-6 lg:px-8">
         <p class="text-center text-xs text-muted-soft">
             Powered by
-            <a href="https://oms.my.id" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 hover:text-muted">Oh My School</a>
+            <a href="https://oms.my.id" target="_blank" rel="noopener noreferrer"
+                class="underline underline-offset-2 hover:text-muted">Oh My School</a>
             &middot;
-            <a href="https://github.com/sooluh/oms" target="_blank" rel="noopener noreferrer" class="underline underline-offset-2 hover:text-muted">GitHub</a>
+            <a href="https://github.com/sooluh/oms" target="_blank" rel="noopener noreferrer"
+                class="underline underline-offset-2 hover:text-muted">GitHub</a>
         </p>
     </footer>
 </body>

@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use App\Filament\Pages\Auth\Login;
 use Filafly\Icons\Phosphor\Enums\Phosphor;
 use Filafly\Icons\Phosphor\PhosphorIcons;
 use Filament\Actions\Action;
@@ -13,6 +14,8 @@ use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
 use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
@@ -25,6 +28,16 @@ use YousefAman\ModalRepeater\ModalRepeaterPlugin;
 
 class StudioPanelProvider extends PanelProvider
 {
+    public function boot(): void
+    {
+        if (config('app.is_demo')) {
+            FilamentView::registerRenderHook(
+                PanelsRenderHook::BODY_START,
+                fn (): string => view('filament.demo-banner')->render(),
+            );
+        }
+    }
+
     public function panel(Panel $panel): Panel
     {
         return $panel
@@ -66,7 +79,7 @@ class StudioPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
             ])
-            ->login()
+            ->login(Login::class)
             ->maxContentWidth('full')
             ->breadcrumbs(false)
             ->collapsibleNavigationGroups(false)

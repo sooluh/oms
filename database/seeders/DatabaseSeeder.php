@@ -17,5 +17,9 @@ class DatabaseSeeder extends Seeder
             'email' => 'admin@oms.my.id',
             'password' => 'ohmyschool',
         ]);
+
+        if (config('app.is_demo')) {
+            $this->call(DemoServiceSeeder::class);
+        }
     }
 }

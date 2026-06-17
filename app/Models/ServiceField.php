@@ -4,13 +4,14 @@ namespace App\Models;
 
 use App\Enums\FieldType;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Qopiku\FilamentSqids\Traits\HasSqids;
 
 class ServiceField extends Model
 {
-    use HasSqids;
+    use HasFactory, HasSqids;
 
     protected $fillable = [
         'service_id',

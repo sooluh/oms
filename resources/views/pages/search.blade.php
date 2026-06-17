@@ -30,29 +30,29 @@
             <div class="mt-10 rounded-xl bg-surface-card p-8 text-center">
                 <p class="text-sm text-muted">This service has not set up search identifiers yet.</p>
             </div>
-        @elseif (! $isOpen)
+        @elseif (!$isOpen)
             <div class="mt-10 rounded-xl border border-dashed border-hairline bg-surface-card/50 p-8 text-center">
                 <x-phosphor-clock-countdown-bold class="mx-auto h-10 w-10 text-muted-soft" />
                 @php
                     $message = 'This service is not currently open for searches.';
 
                     if ($service->start_date && $service->start_date->isFuture()) {
-                        $message = 'This service will be available starting ' . $service->start_date->format('F j, Y') . '.';
+                        $message =
+                            'This service will be available starting ' . $service->start_date->format('F j, Y') . '.';
                     } elseif ($service->end_date && $service->end_date->isPast()) {
-                        $message = 'This service was closed on ' . $service->end_date->format('F j, Y') . ' and is no longer available.';
+                        $message =
+                            'This service was closed on ' .
+                            $service->end_date->format('F j, Y') .
+                            ' and is no longer available.';
                     }
                 @endphp
                 <p class="mt-3 text-sm text-muted">{{ $message }}</p>
             </div>
         @else
             <div class="mt-10 rounded-xl border border-hairline bg-surface-card p-8">
-                <div id="error-container"></div>
-
-                <form id="search-form"
-                    data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}"
+                <form id="search-form" data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}"
                     data-search-url="{{ route('service.search', $service->slug) }}"
-                    data-search-mode="{{ $service->search_mode->value }}"
-                    class="space-y-5">
+                    data-search-mode="{{ $service->search_mode->value }}" class="space-y-5">
 
                     @if ($service->search_mode === SearchMode::Or)
                         <div>
@@ -60,8 +60,10 @@
                                 Enter {{ $identifiers->pluck('label')->implode(' or ') }}
                             </label>
                             <input type="text" id="search" name="search"
-                                class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink"
-                                placeholder="Enter {{ $identifiers->pluck('label')->implode(' or ') }}" autocomplete="off">
+                                class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all"
+                                placeholder="Enter {{ $identifiers->pluck('label')->implode(' or ') }}" autocomplete="off"
+                                data-error>
+                            <p class="mt-1 text-xs text-error hidden" data-error-message></p>
                         </div>
                     @else
                         @foreach ($identifiers as $identifier)
@@ -74,7 +76,8 @@
                                 @if ($identifier->type === FieldType::Boolean)
                                     <select id="identifier_{{ $identifier->identifier_order }}"
                                         name="identifiers[{{ $identifier->identifier_order }}]"
-                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink">
+                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink outline-none transition-all"
+                                        data-error>
                                         <option value="1">{{ $identifier->true_label ?? 'Yes' }}</option>
                                         <option value="0">{{ $identifier->false_label ?? 'No' }}</option>
                                     </select>
@@ -82,9 +85,11 @@
                                     <input type="{{ $identifier->type === FieldType::Date ? 'date' : 'text' }}"
                                         id="identifier_{{ $identifier->identifier_order }}"
                                         name="identifiers[{{ $identifier->identifier_order }}]"
-                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink"
-                                        placeholder="Enter {{ $identifier->label }}" autocomplete="off">
+                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all"
+                                        placeholder="Enter {{ $identifier->label }}" autocomplete="off"
+                                        data-error>
                                 @endif
+                                <p class="mt-1 text-xs text-error hidden" data-error-message></p>
                             </div>
                         @endforeach
                     @endif
@@ -97,7 +102,8 @@
             </div>
 
             <div id="results-container" class="mt-6">
-                <div class="rounded-xl border border-dashed border-hairline bg-surface-card/50 p-8 text-center text-sm text-muted-soft">
+                <div
+                    class="rounded-xl border border-dashed border-hairline bg-surface-card/50 p-8 text-center text-sm text-muted-soft">
                     Enter your data above and click "Search" to view results.
                 </div>
             </div>
@@ -120,14 +126,17 @@
     <template id="tmpl-field-link">
         <div>
             <span class="text-sm font-medium text-muted"><span data-label></span></span>
-            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener" class="text-brand-pink underline underline-offset-2 hover:no-underline"></a></p>
+            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener"
+                    class="text-brand-pink underline underline-offset-2 hover:no-underline"></a></p>
         </div>
     </template>
 
     <template id="tmpl-field-attachment">
         <div>
             <span class="text-sm font-medium text-muted"><span data-label></span></span>
-            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener" class="inline-flex items-center gap-1.5 text-brand-pink underline underline-offset-2 hover:no-underline"></a></p>
+            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener"
+                    class="inline-flex items-center gap-1.5 text-brand-pink underline underline-offset-2 hover:no-underline"></a>
+            </p>
         </div>
     </template>
 
@@ -139,6 +148,6 @@
     </template>
 
     <template id="tmpl-error">
-        <div class="mt-4 rounded-lg bg-error/10 p-4 text-sm text-error font-medium"></div>
+        <div class="mb-6 rounded-lg bg-error/10 p-4 text-sm text-error font-medium"></div>
     </template>
 @endsection

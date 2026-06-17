@@ -96,6 +96,14 @@ function renderResults(data, container) {
         var fieldsContainer = resultsClone.querySelector("[data-fields]");
 
         data.fields.forEach(function (field) {
+            if (
+                field.value === null ||
+                field.value === undefined ||
+                field.value === ""
+            ) {
+                return;
+            }
+
             var tmplId = "tmpl-field";
 
             if (field.type === 3) {
@@ -136,31 +144,62 @@ function renderResults(data, container) {
     }
 }
 
-function renderError(data, container) {
-    container.innerHTML = "";
+function renderError(data) {
+    var form = document.getElementById("search-form");
 
     if (data.errors) {
-        var messages = Object.values(data.errors).flat();
-        messages.forEach(function (msg) {
-            var clone = document
-                .getElementById("tmpl-error")
-                .content.cloneNode(true);
-            clone.firstElementChild.textContent = msg;
-            container.appendChild(clone);
+        Object.keys(data.errors).forEach(function (key) {
+            var input;
+            if (key === "search") {
+                input = form.querySelector("#search");
+            } else {
+                var match = key.match(/^identifiers\.(\d+)$/);
+                if (match) {
+                    input = form.querySelector(
+                        '[name="identifiers[' + match[1] + ']"]',
+                    );
+                }
+            }
+
+            if (input) {
+                var wrapper = input.closest("div");
+                input.dataset.error = "true";
+                input.classList.add(
+                    "border-error",
+                    "focus:border-error",
+                    "focus:ring-error",
+                );
+
+                var errorMsg = wrapper.querySelector("[data-error-message]");
+                if (errorMsg) {
+                    errorMsg.textContent = data.errors[key].join(", ");
+                    errorMsg.classList.remove("hidden");
+                }
+            }
         });
-    } else if (data.lockout) {
-        var clone = document
-            .getElementById("tmpl-error")
-            .content.cloneNode(true);
-        clone.firstElementChild.textContent = data.lockout;
-        container.appendChild(clone);
-    } else if (data.message) {
-        var clone = document
-            .getElementById("tmpl-error")
-            .content.cloneNode(true);
-        clone.firstElementChild.textContent = data.message;
+    } else if (data.lockout || data.message) {
+        var container = document.getElementById("results-container");
+        var tmpl = document.getElementById("tmpl-error");
+        var clone = tmpl.content.cloneNode(true);
+        clone.firstElementChild.textContent = data.lockout || data.message;
+        container.innerHTML = "";
         container.appendChild(clone);
     }
+}
+
+function clearErrors() {
+    document.querySelectorAll("[data-error]").forEach(function (el) {
+        delete el.dataset.error;
+        el.classList.remove(
+            "border-error",
+            "focus:border-error",
+            "focus:ring-error",
+        );
+    });
+    document.querySelectorAll("[data-error-message]").forEach(function (el) {
+        el.classList.add("hidden");
+        el.textContent = "";
+    });
 }
 
 document.addEventListener("DOMContentLoaded", function () {
@@ -178,11 +217,12 @@ document.addEventListener("DOMContentLoaded", function () {
         e.preventDefault();
 
         var resultsContainer = document.getElementById("results-container");
-        var errorContainer = document.getElementById("error-container");
         var submitBtn = document.getElementById("search-btn");
         var originalText = submitBtn.textContent;
 
-        errorContainer.innerHTML = "";
+        clearErrors();
+        resultsContainer.innerHTML =
+            '<div class="rounded-xl border border-dashed border-hairline bg-surface-card/50 p-8 text-center text-sm text-muted-soft">Enter your data above and click "Search" to view results.</div>';
         submitBtn.disabled = true;
         submitBtn.textContent = "Searching...";
 
@@ -193,7 +233,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     .content.cloneNode(true);
                 clone.firstElementChild.textContent =
                     "Your browser does not support the required encryption features.";
-                errorContainer.appendChild(clone);
+                resultsContainer.appendChild(clone);
 
                 return;
             }
@@ -219,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function () {
                             new Uint8Array(responseBuffer),
                             encrypted.aesKey,
                         );
-                        renderError(errorData, errorContainer);
+                        renderError(errorData);
 
                         return;
                     } catch (_) {}
@@ -232,7 +272,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     "Request failed (status " +
                     response.status +
                     "). Please try again.";
-                errorContainer.appendChild(clone);
+                resultsContainer.appendChild(clone);
 
                 return;
             }
@@ -248,7 +288,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 .content.cloneNode(true);
             clone.firstElementChild.textContent =
                 "An unexpected error occurred. Please try again.";
-            errorContainer.appendChild(clone);
+            resultsContainer.appendChild(clone);
         } finally {
             submitBtn.disabled = false;
             submitBtn.textContent = originalText;

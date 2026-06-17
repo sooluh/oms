@@ -79,7 +79,9 @@ class ServiceController extends Controller
             }
         }
 
-        $validator = Validator::make($formData, $rules);
+        $validator = Validator::make($formData, $rules, attributes: $identifiers->mapWithKeys(fn ($f) => [
+            'identifiers.'.$f->identifier_order => $f->label,
+        ])->toArray());
 
         if ($validator->fails()) {
             $encrypted = $crypto->encryptResponse([
@@ -161,11 +163,11 @@ class ServiceController extends Controller
 
         $responseData = $result->isEmpty()
             ? ['found' => false, 'message' => 'Data not found. Please check your identifier(s) and try again.']
-            : ['found' => true, 'fields' => $visibleFields->map(fn ($field) => [
+            : ['found' => true, 'fields' => $visibleFields->filter(fn ($field) => ! is_null($result->first()->data[$field->name] ?? null))->values()->map(fn ($field) => [
                 'label' => $field->label,
                 'value' => $field->type === FieldType::Attachment
-                    ? (($val = $result->first()->data[$field->name] ?? null) ? Storage::disk('public')->url($val) : '-')
-                    : ($result->first()->data[$field->name] ?? '-'),
+                    ? (($val = $result->first()->data[$field->name] ?? null) ? Storage::disk('public')->url($val) : null)
+                    : ($result->first()->data[$field->name] ?? null),
                 'type' => $field->type->value,
                 'true_label' => $field->true_label,
                 'false_label' => $field->false_label,
