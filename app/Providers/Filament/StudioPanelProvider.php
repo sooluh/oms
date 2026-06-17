@@ -2,6 +2,8 @@
 
 namespace App\Providers\Filament;
 
+use Filafly\Icons\Phosphor\Enums\Phosphor;
+use Filafly\Icons\Phosphor\PhosphorIcons;
 use Filament\Actions\Action;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
@@ -18,7 +20,6 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use ToneGabes\Filament\Icons\Enums\Phosphor;
 
 class StudioPanelProvider extends PanelProvider
 {
@@ -43,7 +44,9 @@ class StudioPanelProvider extends PanelProvider
                 DisableBladeIconComponents::class,
                 DispatchServingFilamentEvent::class,
             ])
-            ->plugins([])
+            ->plugins([
+                PhosphorIcons::make()->bold(),
+            ])
             ->userMenuItems([
                 'profile' => Action::make('profile')
                     ->label(fn (): string => Auth::user()->name ?? 'Profile')

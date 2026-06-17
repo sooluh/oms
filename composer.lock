@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "41ff64c9ca7eb378fcb20600907a1f11",
+    "content-hash": "04e8fe480a5ac5a85c684d694bd42cec",
     "packages": [
         {
             "name": "blade-ui-kit/blade-heroicons",
@@ -1074,6 +1074,122 @@
             "time": "2025-03-06T22:45:56+00:00"
         },
         {
+            "name": "filafly/filament-icons",
+            "version": "v2.2.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/filafly/filament-icons.git",
+                "reference": "c1ced1bc0d0a03cd276ca2c3abf3abe2ca20b97d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/filafly/filament-icons/zipball/c1ced1bc0d0a03cd276ca2c3abf3abe2ca20b97d",
+                "reference": "c1ced1bc0d0a03cd276ca2c3abf3abe2ca20b97d",
+                "shasum": ""
+            },
+            "require": {
+                "filament/filament": "^4.0 || ^5.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.20",
+                "phpunit/phpunit": "^11.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Filafly\\Icons\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nolan Nordlund",
+                    "email": "nolan@filafly.com",
+                    "homepage": "https://www.filafly.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Core package for managing Filament icon drivers via a common interface.",
+            "homepage": "https://filafly.com/plugins/filament-icons",
+            "keywords": [
+                "Phosphor",
+                "carbon",
+                "filament",
+                "font awesome",
+                "iconoir",
+                "icons",
+                "laravel",
+                "replace",
+                "swap"
+            ],
+            "support": {
+                "issues": "https://github.com/filafly/filament-icons/issues",
+                "source": "https://github.com/filafly/filament-icons/tree/v2.2.1"
+            },
+            "time": "2026-04-06T18:46:37+00:00"
+        },
+        {
+            "name": "filafly/filament-phosphor-icons",
+            "version": "v2.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/filafly/filament-phosphor-icons.git",
+                "reference": "fef462488ded09352f29acae576378850d087886"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/filafly/filament-phosphor-icons/zipball/fef462488ded09352f29acae576378850d087886",
+                "reference": "fef462488ded09352f29acae576378850d087886",
+                "shasum": ""
+            },
+            "require": {
+                "codeat3/blade-phosphor-icons": "^2.3",
+                "filafly/filament-icons": "^2.0",
+                "filament/filament": "^4.0 || ^5.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.22"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Filafly\\Icons\\Phosphor\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Nolan Nordlund",
+                    "email": "nolan@filafly.com",
+                    "homepage": "https://www.filafly.com/",
+                    "role": "Developer"
+                }
+            ],
+            "description": "Phosphor icon pack for Filament Icons",
+            "homepage": "https://filafly.com/plugins/filament-icons",
+            "keywords": [
+                "Phosphor",
+                "filament",
+                "icons",
+                "laravel",
+                "replace",
+                "swap"
+            ],
+            "support": {
+                "issues": "https://github.com/filafly/filament-phosphor-icons/issues",
+                "source": "https://github.com/filafly/filament-phosphor-icons/tree/v2.2.0"
+            },
+            "time": "2026-02-26T10:28:09+00:00"
+        },
+        {
             "name": "filament/actions",
             "version": "v5.6.7",
             "source": {
@@ -1728,6 +1844,85 @@
                 }
             ],
             "time": "2025-12-27T19:43:20+00:00"
+        },
+        {
+            "name": "guava/filament-icon-picker",
+            "version": "4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lukas-frey/filament-icon-picker.git",
+                "reference": "c1aa7bbf9f2c434a02574a9b0673b4506d0588d2"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lukas-frey/filament-icon-picker/zipball/c1aa7bbf9f2c434a02574a9b0673b4506d0588d2",
+                "reference": "c1aa7bbf9f2c434a02574a9b0673b4506d0588d2",
+                "shasum": ""
+            },
+            "require": {
+                "blade-ui-kit/blade-icons": "^1.8",
+                "filament/filament": "^5.0",
+                "php": "^8.2",
+                "spatie/laravel-package-tools": "^1.15.0"
+            },
+            "require-dev": {
+                "laravel/pint": "^1.0",
+                "nunomaduro/collision": "^8.0",
+                "nunomaduro/larastan": "^3.0",
+                "orchestra/testbench": "^10.0",
+                "pestphp/pest": "^3.1",
+                "pestphp/pest-plugin-arch": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0",
+                "phpstan/extension-installer": "^1.1",
+                "phpstan/phpstan-deprecation-rules": "^2.0",
+                "phpstan/phpstan-phpunit": "2.0"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "aliases": {
+                        "IconPicker": "IconManager"
+                    },
+                    "providers": [
+                        "Guava\\IconPicker\\IconPickerServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Guava\\IconPicker\\": "src/",
+                    "Guava\\IconPicker\\Database\\Factories\\": "database/factories/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Lukas Frey",
+                    "email": "lukas.frey@guava.cz",
+                    "role": "Developer"
+                }
+            ],
+            "description": "A filament plugin that adds an icon picker field.",
+            "homepage": "https://github.com/GuavaCZ/filament-icon-picker",
+            "keywords": [
+                "Guava",
+                "filament-icon-picker",
+                "laravel"
+            ],
+            "support": {
+                "issues": "https://github.com/guavaCZ/filament-icon-picker/issues",
+                "source": "https://github.com/guavaCZ/filament-icon-picker"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/GuavaCZ",
+                    "type": "github"
+                }
+            ],
+            "time": "2026-01-24T10:42:07+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -8463,68 +8658,6 @@
                 "source": "https://github.com/tijsverkoyen/CssToInlineStyles/tree/v2.4.0"
             },
             "time": "2025-12-02T11:56:42+00:00"
-        },
-        {
-            "name": "tonegabes/filament-phosphor-icons",
-            "version": "1.3.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/tonegabes/filament-phosphor-icons.git",
-                "reference": "fdcee3cab6fbd9a606eb54a0a58fa617bb8239c1"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/tonegabes/filament-phosphor-icons/zipball/fdcee3cab6fbd9a606eb54a0a58fa617bb8239c1",
-                "reference": "fdcee3cab6fbd9a606eb54a0a58fa617bb8239c1",
-                "shasum": ""
-            },
-            "require": {
-                "codeat3/blade-phosphor-icons": "^2.3",
-                "filament/filament": "^4.0|^5.0",
-                "php": "^8.1"
-            },
-            "require-dev": {
-                "laravel/pint": "^1.22"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "ToneGabes\\Filament\\Icons\\PhosphorIconsServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "ToneGabes\\Filament\\Icons\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Tone Gabes",
-                    "email": "tonegabes@gmail.com",
-                    "homepage": "https://tonegabes.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "Phosphor Icons Pack ready for Filament 4",
-            "keywords": [
-                "Iconset",
-                "Phosphor",
-                "filament",
-                "icons",
-                "laravel",
-                "library"
-            ],
-            "support": {
-                "issues": "https://github.com/tonegabes/filament-phosphor-icons/issues",
-                "source": "https://github.com/tonegabes/filament-phosphor-icons/tree/1.3.1"
-            },
-            "time": "2026-04-29T17:56:26+00:00"
         },
         {
             "name": "ueberdosis/tiptap-php",
