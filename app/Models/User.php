@@ -2,40 +2,28 @@
 
 namespace App\Models;
 
-use App\Traits\Avatarable;
-use Filament\Models\Contracts\HasAvatar;
-use Illuminate\Database\Eloquent\SoftDeletes;
+use Database\Factories\UserFactory;
+use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\Hidden;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements HasAvatar
+#[Fillable(['name', 'email', 'password'])]
+#[Hidden(['password', 'remember_token'])]
+class User extends Authenticatable
 {
-    use Avatarable;
-    use HasApiTokens;
-    use Notifiable;
-    use SoftDeletes;
+    /** @use HasFactory<UserFactory> */
+    use HasFactory, Notifiable;
 
-    protected $fillable = [
-        'login',
-        'email',
-        'password',
-        'name',
-        'enhancer_id',
-    ];
-
-    protected $hidden = [
-        'password',
-        'remember_token',
-        'enhancer_id',
-    ];
-
-    protected $casts = [
-        'password' => 'hashed',
-    ];
-
-    public function getFilamentAvatarUrl(): ?string
+    /**
+     * @return array<string, string>
+     */
+    protected function casts(): array
     {
-        return $this->avatar_url;
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
     }
 }
