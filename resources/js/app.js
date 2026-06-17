@@ -104,7 +104,9 @@ function renderResults(data, container) {
                 tmplId = "tmpl-field-attachment";
             }
 
-            var fieldClone = document.getElementById(tmplId).content.cloneNode(true);
+            var fieldClone = document
+                .getElementById(tmplId)
+                .content.cloneNode(true);
             fieldClone.querySelector("[data-label]").textContent = field.label;
 
             var valueEl = fieldClone.querySelector("[data-value]");

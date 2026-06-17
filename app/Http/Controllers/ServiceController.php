@@ -8,17 +8,19 @@ use App\Models\SearchLog;
 use App\Models\Service;
 use App\Models\ServiceRecord;
 use App\Services\CryptoService;
+use App\Settings\AppSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ServiceController extends Controller
 {
-    public function index()
+    public function index(AppSettings $settings)
     {
         $services = Service::active()->ordered()->get();
 
-        return view('pages.home', compact('services'));
+        return view('pages.home', compact('services', 'settings'));
     }
 
     public function show(string $slug)
@@ -161,7 +163,9 @@ class ServiceController extends Controller
             ? ['found' => false, 'message' => 'Data not found. Please check your identifier(s) and try again.']
             : ['found' => true, 'fields' => $visibleFields->map(fn ($field) => [
                 'label' => $field->label,
-                'value' => $result->first()->data[$field->name] ?? '-',
+                'value' => $field->type === FieldType::Attachment
+                    ? (($val = $result->first()->data[$field->name] ?? null) ? Storage::disk('public')->url($val) : '-')
+                    : ($result->first()->data[$field->name] ?? '-'),
                 'type' => $field->type->value,
                 'true_label' => $field->true_label,
                 'false_label' => $field->false_label,

@@ -22,6 +22,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Callout;
+use Filament\Support\Enums\TextSize;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -91,7 +92,7 @@ class ListServiceRecords extends ListRecords
         $fields = $this->serviceModel->fields()->ordered()->get();
         $columns = [];
 
-        foreach ($fields as $field) {
+        foreach ($fields as $i => $field) {
             $column = TextColumn::make('data.'.$field->name)
                 ->label($field->label)
                 ->searchable()
@@ -100,18 +101,36 @@ class ListServiceRecords extends ListRecords
             if ($field->type === FieldType::Date) {
                 $column->date();
             } elseif ($field->type === FieldType::Boolean) {
-                $column->formatStateUsing(fn (mixed $state): ?string => match ($state) {
-                    '1', 1, true => $field->true_label ?? 'Yes',
-                    '0', 0, false => $field->false_label ?? 'No',
-                    default => null,
-                });
+                $column = TextColumn::make('data.'.$field->name)
+                    ->label($field->label)
+                    ->badge()
+                    ->size(TextSize::Medium)
+                    ->formatStateUsing(fn (mixed $state): string => match ($state) {
+                        '1', 1, true => $field->true_label ?? 'Yes',
+                        '0', 0, false => $field->false_label ?? 'No',
+                        default => '-',
+                    })
+                    ->icon(fn (mixed $state): ?string => match ($state) {
+                        '1', 1, true => 'heroicon-o-check-circle',
+                        '0', 0, false => 'heroicon-o-x-circle',
+                        default => null,
+                    })
+                    ->color(fn (mixed $state): ?string => match ($state) {
+                        '1', 1, true => 'success',
+                        '0', 0, false => 'danger',
+                        default => null,
+                    });
             } elseif ($field->type === FieldType::Link) {
                 $column->url(fn (mixed $state): ?string => $state ?: null)
                     ->openUrlInNewTab();
             } elseif ($field->type === FieldType::Attachment) {
                 $column->formatStateUsing(fn (mixed $state): ?string => $state ? __('Download') : null)
-                    ->url(fn (mixed $state): ?string => $state ? Storage::url($state) : null)
+                    ->url(fn (mixed $state): ?string => $state ? Storage::disk('public')->url($state) : null)
                     ->openUrlInNewTab();
+            }
+
+            if ($i >= 6) {
+                $column->toggleable(isToggledHiddenByDefault: true);
             }
 
             $columns[] = $column;
@@ -372,7 +391,10 @@ class ListServiceRecords extends ListRecords
         foreach ($fields as $field) {
             $component = match ($field->type) {
                 FieldType::Date => DatePicker::make('data.'.$field->name)->native(false),
-                FieldType::Attachment => FileUpload::make('data.'.$field->name),
+                FieldType::Attachment => FileUpload::make('data.'.$field->name)
+                    ->disk('public')
+                    ->directory('uploads')
+                    ->visibility('public'),
                 FieldType::Boolean => Select::make('data.'.$field->name)
                     ->options([
                         '1' => $field->true_label ?? 'Yes',
@@ -396,7 +418,6 @@ class ListServiceRecords extends ListRecords
     {
         $disk = config('filesystems.default');
 
-        // Normalize array uploads to single file
         if (is_array($file)) {
             $file = array_values($file)[0] ?? null;
         }
@@ -411,15 +432,12 @@ class ListServiceRecords extends ListRecords
             return;
         }
 
-        // Get the stored file path - with storeFiles(true) by default,
-        // the file is already stored on disk and $file is a path string
         if (is_string($file)) {
             $fullPath = Storage::disk($disk)->path($file);
         } else {
-            // Fallback: file is an UploadedFile object
             $path = $file->store('imports', $disk);
             $fullPath = Storage::disk($disk)->path($path);
-            $file = $path; // Use this path for cleanup
+            $file = $path;
         }
 
         $extension = strtolower(pathinfo($fullPath, PATHINFO_EXTENSION));

@@ -206,7 +206,12 @@ class ServiceForm
                                     ->native(false)
                                     ->required()
                                     ->default(FieldType::Text)
-                                    ->live(),
+                                    ->live()
+                                    ->afterStateUpdated(function ($state, $set): void {
+                                        if ($state === FieldType::Attachment->value || $state === FieldType::Attachment) {
+                                            $set('is_identifier', false);
+                                        }
+                                    }),
 
                                 TextInput::make('true_label')
                                     ->label('True Label')
@@ -236,7 +241,9 @@ class ServiceForm
                                     ->label('Mark as Identifier')
                                     ->inline(false)
                                     ->default(false)
-                                    ->live(),
+                                    ->live()
+                                    ->disabled(fn ($get): bool => $get('type') === FieldType::Attachment || $get('type') === FieldType::Attachment->value)
+                                    ->helperText(fn ($get): ?string => ($get('type') === FieldType::Attachment || $get('type') === FieldType::Attachment->value) ? 'Attachment fields cannot be used as identifiers.' : null),
                             ]),
                     ]),
             ]);

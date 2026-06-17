@@ -99,26 +99,27 @@ class ImportService
     public function validate(Service $service, array $headers, array $rows): array
     {
         $fields = $service->fields()->ordered()->get();
+        $importableFields = $fields->reject(fn ($field): bool => $field->type === FieldType::Attachment)->values();
         $identifierFields = $service->identifierFields()->get();
 
         $headerFieldMap = [];
         $headerErrors = [];
 
         foreach ($headers as $index => $header) {
-            $field = $fields->get($index);
+            $field = $importableFields->get($index);
 
             if ($field !== null) {
                 $headerFieldMap[$index] = $field;
             }
         }
 
-        if (count($headers) < $fields->count()) {
-            $headerErrors[] = 'Excel has '.count($headers).' columns, but service has '.$fields->count().' fields. ';
-            $headerErrors[] = 'Columns must match fields in order: '.$fields->pluck('name')->implode(', ');
+        if (count($headers) < $importableFields->count()) {
+            $headerErrors[] = 'Excel has '.count($headers).' columns, but service has '.$importableFields->count().' importable fields. ';
+            $headerErrors[] = 'Columns must match fields in order: '.$importableFields->pluck('name')->implode(', ').'. Attachment fields are skipped during import.';
         }
 
-        if (count($headers) > $fields->count()) {
-            $headerErrors[] = 'Excel has '.count($headers).' columns ('.implode(', ', $headers).'), but service only has '.$fields->count().' fields.';
+        if (count($headers) > $importableFields->count()) {
+            $headerErrors[] = 'Excel has '.count($headers).' columns ('.implode(', ', $headers).'), but service only has '.$importableFields->count().' importable fields.';
         }
 
         $validatedRows = [];
@@ -218,6 +219,8 @@ class ImportService
                 'identifier_1' => null,
                 'identifier_2' => null,
                 'identifier_3' => null,
+                'identifier_4' => null,
+                'identifier_5' => null,
                 'data' => $data,
             ];
 

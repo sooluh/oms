@@ -46,15 +46,13 @@
             </div>
         @else
             <div class="mt-10 rounded-xl border border-hairline bg-surface-card p-8">
-                <h2 class="text-title-md font-semibold text-ink">Search Your Data</h2>
-
                 <div id="error-container"></div>
 
                 <form id="search-form"
                     data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}"
                     data-search-url="{{ route('service.search', $service->slug) }}"
                     data-search-mode="{{ $service->search_mode->value }}"
-                    class="mt-6 space-y-5">
+                    class="space-y-5">
 
                     @if ($service->search_mode === SearchMode::Or)
                         <div>

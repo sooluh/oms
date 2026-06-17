@@ -1,20 +1,19 @@
 @extends('layouts.public')
 
-@section('title', 'Services')
+@section('title', $settings->school_name)
 
 @section('content')
     <div class="mx-auto max-w-7xl px-4 py-section sm:px-6 lg:px-8">
         <div class="mx-auto max-w-2xl text-center">
-            <span
-                class="inline-block rounded-pill bg-surface-card px-4 py-1.5 text-[13px] font-medium tracking-[1.5px] text-muted">
-                INFORMATION SERVICES
-            </span>
+            <a href="{{ $settings->school_website }}" target="_blank" rel="nofollow noopener noreferrer"
+                class="inline-block rounded-pill bg-surface-card px-4 py-1.5 text-[13px] font-medium text-muted transition-colors hover:text-ink">
+                {{ $settings->school_name }}
+            </a>
             <h1 class="mt-6 text-4xl font-semibold leading-tight tracking-tight text-ink sm:text-5xl lg:text-6xl">
-                Check Information<br>
-                <span class="text-brand-pink">Self Service</span>
+                {{ $settings->title }}
             </h1>
             <p class="mt-4 text-lg text-muted">
-                Choose a service to check your information quickly and easily.
+                {{ $settings->subtitle }}
             </p>
         </div>
     </div>

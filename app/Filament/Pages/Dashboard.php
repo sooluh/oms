@@ -10,11 +10,11 @@ use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
 use Filament\Pages\Dashboard\Actions\FilterAction;
 use Filament\Pages\Dashboard as BaseDashboard;
-use Filament\Pages\Dashboard\Concerns\HasFiltersForm;
+use Filament\Pages\Dashboard\Concerns\HasFilters;
 
 class Dashboard extends BaseDashboard
 {
-    use HasFiltersForm;
+    use HasFilters;
 
     protected static string $routePath = '/dashboard';
 
