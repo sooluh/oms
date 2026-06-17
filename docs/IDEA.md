@@ -20,51 +20,51 @@ Oh My School
 
 ## Vision
 
-Oh My School adalah platform Dynamic Student Information Lookup Engine yang memungkinkan sekolah membuat berbagai layanan pengecekan mandiri secara fleksibel tanpa perlu membuat aplikasi terpisah untuk setiap kebutuhan.
+Oh My School is a Dynamic Student Information Lookup Engine platform that allows schools to create various self-service lookup services flexibly without needing to build a separate application for every requirement.
 
-Sistem dirancang agar administrator dapat membuat layanan baru, menentukan struktur data, melakukan import data, serta menyediakan halaman publik untuk siswa melakukan pencarian informasi secara mandiri.
+The system is designed so that administrators can create new services, define data structures, import data, and provide public pages for students to look up information independently.
 
 ---
 
 # 2. Background
 
-Sebelumnya sekolah memiliki beberapa aplikasi pengecekan yang bersifat statis.
+Previously, the school had several static lookup applications.
 
-Contoh:
+Examples:
 
-- Aplikasi Cek Kelulusan.
-- Aplikasi Cek Nilai Ujian.
-- Aplikasi Cek Hasil PPDB.
+- Graduation Status Checker.
+- Exam Score Checker.
+- New Student Admission (PPDB) Result Checker.
 
-Setiap aplikasi memiliki keterbatasan:
+Each application had limitations:
 
-- Hanya mendukung satu jenis layanan.
-- Struktur field telah ditentukan di source code.
-- Identifier pencarian bersifat tetap (contohnya hanya NIS).
-- Ketika membutuhkan layanan baru, aplikasi harus di-fork dan dimodifikasi ulang.
+- Only supported one type of service.
+- Field structure was hardcoded in the source code.
+- Search identifier was fixed (e.g. only Student ID/NIS).
+- Whenever a new service was needed, the application had to be forked and modified again.
 
-Pendekatan tersebut menyebabkan:
+This approach caused:
 
-- Duplikasi project.
-- Maintenance menjadi sulit.
-- Pengembangan menjadi lambat.
-- Risiko inkonsistensi antar sistem.
+- Project duplication.
+- Difficult maintenance.
+- Slow development.
+- Risk of inconsistency between systems.
 
 ---
 
 # 3. Goals
 
-Membangun satu platform yang dapat mendukung berbagai layanan pengecekan seperti:
+Build a single platform that can support various lookup services such as:
 
-- Kelulusan.
-- Hasil ujian.
-- Hasil seleksi PPDB.
-- Kenaikan kelas.
-- Pembagian kelas.
-- Informasi administrasi.
-- Layanan lainnya yang membutuhkan pencarian data berdasarkan identifier unik.
+- Graduation status.
+- Exam results.
+- Admission (PPDB) selection results.
+- Grade promotion.
+- Class assignment.
+- Administrative information.
+- Other services that require data lookup based on a unique identifier.
 
-Semua layanan harus dapat dibuat melalui panel administrator tanpa perubahan source code.
+All services must be creatable through the administrator panel without any source code changes.
 
 ---
 
@@ -72,92 +72,92 @@ Semua layanan harus dapat dibuat melalui panel administrator tanpa perubahan sou
 
 ## 4.1 Service
 
-Service adalah sebuah layanan informasi yang dapat diakses oleh siswa melalui halaman publik.
+A Service is an information service that can be accessed by students through a public page.
 
-Contoh:
+Examples:
 
-- Kelulusan Tahun 2026.
-- Hasil Ujian Semester Genap.
-- Hasil Seleksi PPDB 2026.
+- Graduation Status 2026.
+- Even Semester Exam Results.
+- 2026 Admission (PPDB) Selection Results.
 
-Setiap Service memiliki properti:
+Each Service has the following properties:
 
-| Property                | Description                         |
-| ----------------------- | ----------------------------------- |
-| Name                    | Nama layanan                        |
-| Slug                    | URL unik layanan                    |
-| Icon                    | Nama icon dari Phosphor Icons       |
-| Description             | Deskripsi singkat layanan           |
-| Is Active               | Status aktif/nonaktif               |
-| Start Date              | Tanggal mulai layanan tersedia      |
-| End Date                | Tanggal berakhir layanan            |
-| Sort Order              | Urutan tampilan pada halaman publik |
-| Search Attempt Limit    | Maksimal percobaan pencarian        |
-| Search Attempt Duration | Periode pembatasan percobaan        |
+| Property                | Description                        |
+| ----------------------- | ---------------------------------- |
+| Name                    | Service name                       |
+| Slug                    | Unique service URL                 |
+| Icon                    | Icon name from Phosphor Icons      |
+| Description             | Short service description          |
+| Is Active               | Active/inactive status             |
+| Start Date              | Date the service becomes available |
+| End Date                | Date the service ends              |
+| Sort Order              | Display order on the public page   |
+| Search Attempt Limit    | Maximum number of search attempts  |
+| Search Attempt Duration | Attempt restriction period         |
 
 ---
 
 ## 4.2 Field
 
-Field adalah definisi struktur data dari sebuah Service.
+A Field defines the data structure of a Service.
 
-Contoh Field untuk Service Kelulusan:
+Example Fields for the Graduation Service:
 
-| Name       | Label            | Type      |
-| ---------- | ---------------- | --------- |
-| nis        | NIS              | Text      |
-| nama       | Nama Siswa       | Text      |
-| kelas      | Kelas            | Text      |
-| status     | Status Kelulusan | Text      |
-| keterangan | Pesan            | Long Text |
+| Name       | Label             | Type      |
+| ---------- | ----------------- | --------- |
+| nis        | Student ID (NIS)  | Text      |
+| nama       | Student Name      | Text      |
+| kelas      | Class             | Text      |
+| status     | Graduation Status | Text      |
+| keterangan | Message           | Long Text |
 
-Setiap Field memiliki konfigurasi:
+Each Field has the following configuration:
 
-| Property   | Description                           |
-| ---------- | ------------------------------------- |
-| Name       | Nama internal field                   |
-| Label      | Label yang ditampilkan                |
-| Type       | Tipe data                             |
-| Required   | Apakah wajib diisi saat import        |
-| Visible    | Apakah ditampilkan ke pengguna publik |
-| Sort Order | Urutan tampilan                       |
+| Property   | Description                          |
+| ---------- | ------------------------------------ |
+| Name       | Internal field name                  |
+| Label      | Displayed label                      |
+| Type       | Data type                            |
+| Required   | Whether it is required during import |
+| Visible    | Whether it is shown to public users  |
+| Sort Order | Display order                        |
 
 ---
 
 ## 4.3 Identifier
 
-Identifier adalah Field yang digunakan untuk proses pencarian data oleh siswa.
+An Identifier is a Field used for the data lookup process performed by students.
 
-Contoh:
+Examples:
 
-- NIS.
-- NISN.
-- Nomor Pendaftaran.
-- Tanggal Lahir.
+- Student ID (NIS).
+- National Student ID (NISN).
+- Registration Number.
+- Date of Birth.
 
 ### Identifier Rules
 
-- Setiap Service wajib memiliki minimal 1 identifier.
-- Setiap Service dapat memiliki maksimal 3 identifier.
-- Identifier dipilih dari Field yang telah dibuat.
-- Identifier harus memiliki nilai unik dalam satu Service.
-- Identifier mendukung dua mode pencarian:
+- Each Service must have at least 1 identifier.
+- Each Service can have a maximum of 3 identifiers.
+- Identifiers are selected from Fields that have already been created.
+- An identifier must have a unique value within a single Service.
+- Identifiers support two search modes:
 
 ### OR Mode
 
-Pencarian berhasil apabila salah satu identifier cocok.
+The search succeeds if at least one identifier matches.
 
-Contoh:
+Example:
 
-Identifier:
+Identifiers:
 
 - NIS
 - NISN
 
-Tampilan publik:
+Public display:
 
 ```
-Masukkan NIS atau NISN
+Enter NIS or NISN
 
 [________________]
 ```
@@ -166,36 +166,36 @@ Masukkan NIS atau NISN
 
 ### AND Mode
 
-Pencarian berhasil apabila seluruh identifier sesuai.
+The search succeeds only if all identifiers match.
 
-Contoh:
+Example:
 
-Identifier:
+Identifiers:
 
 - NIS
-- Tanggal Lahir
+- Date of Birth
 
-Tampilan publik:
+Public display:
 
 ```
 NIS
 [_______________]
 
-Tanggal Lahir
+Date of Birth
 [_______________]
 ```
 
-Semua input wajib diisi.
+All inputs are required.
 
 ---
 
 ## 4.4 Record
 
-Record adalah data hasil import yang dimiliki sebuah Service.
+A Record is imported data owned by a Service.
 
-Record menyimpan data dinamis dalam bentuk JSON.
+A Record stores dynamic data in JSON format.
 
-Contoh:
+Example:
 
 ```json
 {
@@ -206,7 +206,7 @@ Contoh:
 }
 ```
 
-Untuk kebutuhan performa pencarian, setiap Record juga memiliki maksimal tiga kolom identifier terpisah:
+For search performance purposes, each Record also has up to three separate identifier columns:
 
 ```
 identifier_1
@@ -214,7 +214,7 @@ identifier_2
 identifier_3
 ```
 
-Kolom tersebut digunakan untuk indexing database dan tidak menggantikan data JSON utama.
+These columns are used for database indexing and do not replace the main JSON data.
 
 ---
 
@@ -222,15 +222,15 @@ Kolom tersebut digunakan untuk indexing database dan tidak menggantikan data JSO
 
 ## Landing Page
 
-Halaman utama menampilkan daftar Service yang tersedia.
+The main page displays the list of available Services.
 
-Setiap Service menampilkan:
+Each Service displays:
 
 - Icon.
-- Nama.
-- Deskripsi singkat.
+- Name.
+- Short description.
 
-Ketika dipilih, pengguna diarahkan ke:
+When selected, the user is redirected to:
 
 ```
 /services/{slug}
@@ -240,130 +240,130 @@ Ketika dipilih, pengguna diarahkan ke:
 
 ## Service Page
 
-Halaman pencarian menyesuaikan konfigurasi Service.
+The search page adapts to the Service configuration.
 
-Contoh OR Mode:
+OR Mode example:
 
 ```
-Masukkan NIS atau NISN
+Enter NIS or NISN
 
 [____________]
 
-[ Cari ]
+[ Search ]
 ```
 
-Contoh AND Mode:
+AND Mode example:
 
 ```
 NIS
 
 [____________]
 
-Tanggal Lahir
+Date of Birth
 
 [____________]
 
-[ Cari ]
+[ Search ]
 ```
 
 ---
 
 ## Result Page
 
-Apabila data ditemukan, sistem menampilkan hanya Field yang memiliki status Visible.
+If data is found, the system only displays Fields with Visible status.
 
-Contoh:
+Example:
 
 ```
-Nama:
+Name:
 Ahmad Fauzi
 
-Kelas:
+Class:
 XII IPA 1
 
 Status:
-LULUS
+PASSED
 ```
 
 ---
 
 # 6. Data Import
 
-Administrator dapat melakukan import file Excel.
+Administrators can import Excel files.
 
-Proses import harus melakukan validasi:
+The import process must perform the following validations:
 
-- File harus memiliki format Excel yang didukung.
-- Header kolom harus sesuai dengan Field yang telah didefinisikan.
-- Field Required wajib tersedia.
-- Data identifier wajib tersedia.
-- Tidak boleh terdapat duplicate identifier dalam satu Service.
-- Tipe data harus sesuai dengan konfigurasi Field.
+- The file must be in a supported Excel format.
+- Column headers must match the defined Fields.
+- Required Fields must be present.
+- Identifier data must be present.
+- There must be no duplicate identifiers within a single Service.
+- Data types must match the Field configuration.
 
-Apabila terdapat kesalahan, sistem harus memberikan laporan error yang jelas beserta nomor baris data.
+If an error occurs, the system must provide a clear error report along with the affected row number.
 
 ---
 
 # 7. QR Code
 
-Setiap Service memiliki QR Code otomatis berdasarkan URL Service.
+Each Service automatically has a QR Code generated from its Service URL.
 
-Contoh:
+Example:
 
 ```
 https://domain.com/services/kelulusan-2026
 ```
 
-QR Code dapat digunakan untuk:
+The QR Code can be used for:
 
-- Banner sekolah.
-- Surat pengumuman.
-- Grup komunikasi orang tua.
+- School banners.
+- Announcement letters.
+- Parent communication groups.
 
 ---
 
 # 8. Analytics
 
-Sistem harus mencatat aktivitas pencarian.
+The system must log search activity.
 
-Data analytics meliputi:
+Analytics data includes:
 
-- Total pencarian.
-- Jumlah pencarian berhasil.
-- Jumlah pencarian gagal.
-- Jumlah pengunjung unik.
-- Statistik pencarian harian.
-- Waktu pencarian paling ramai.
+- Total searches.
+- Number of successful searches.
+- Number of failed searches.
+- Number of unique visitors.
+- Daily search statistics.
+- Peak search times.
 
 ---
 
 # 9. Security
 
-Sistem harus memiliki perlindungan terhadap pencarian berlebihan.
+The system must have protection against excessive searches.
 
-Fitur keamanan:
+Security features:
 
-- Rate limiting berdasarkan IP address.
-- Maksimal percobaan pencarian dapat diatur untuk setiap Service.
-- Pemblokiran sementara setelah batas pencarian tercapai.
-- Pencatatan aktivitas pencarian untuk kebutuhan audit.
+- Rate limiting based on IP address.
+- Maximum search attempts configurable per Service.
+- Temporary blocking once the search limit is reached.
+- Logging of search activity for audit purposes.
 
 ---
 
 # 10. Export Data
 
-Administrator dapat melakukan export Record.
+Administrators can export Records.
 
-Format yang didukung:
+Supported formats:
 
 - Excel (.xlsx).
 - CSV.
 
-Export dapat dilakukan berdasarkan:
+Export can be performed based on:
 
-- Seluruh data.
-- Filter tertentu.
-- Rentang waktu import.
+- All data.
+- Specific filters.
+- Import date range.
 
 ---
 
@@ -371,7 +371,7 @@ Export dapat dilakukan berdasarkan:
 
 ## services
 
-Menyimpan konfigurasi layanan.
+Stores service configuration.
 
 ```
 id
@@ -394,7 +394,7 @@ updated_at
 
 ## service_fields
 
-Menyimpan schema Field.
+Stores the Field schema.
 
 ```
 id
@@ -413,7 +413,7 @@ updated_at
 
 ## service_identifiers
 
-Mapping identifier yang digunakan Service.
+Mapping of identifiers used by a Service.
 
 ```
 id
@@ -423,13 +423,13 @@ identifier_order
 created_at
 ```
 
-Maximum record: 3 per Service.
+Maximum records: 3 per Service.
 
 ---
 
 ## service_records
 
-Menyimpan data siswa.
+Stores student data.
 
 ```
 id
@@ -457,7 +457,7 @@ INDEX(service_id, identifier_3)
 
 ## search_logs
 
-Menyimpan histori pencarian.
+Stores search history.
 
 ```
 id
@@ -475,28 +475,28 @@ created_at
 
 ## Performance
 
-- Pencarian harus memiliki response time kurang dari 1 detik untuk penggunaan normal.
-- Identifier wajib menggunakan database index.
-- Sistem harus mampu menangani ratusan ribu hingga jutaan Record.
+- Searches must have a response time of less than 1 second under normal usage.
+- Identifiers must use database indexing.
+- The system must be able to handle hundreds of thousands to millions of Records.
 
 ## Scalability
 
-Sistem harus mampu menambah Service baru tanpa perubahan source code.
+The system must be able to add new Services without any source code changes.
 
 ## Maintainability
 
-Perubahan schema Service tidak boleh membutuhkan migration database.
+Changes to a Service's schema must not require a database migration.
 
 ---
 
 # 13. Future Possibilities
 
-Fitur yang dapat dikembangkan pada versi berikutnya:
+Features that can be developed in future versions:
 
-- Custom template halaman hasil.
-- API integration dengan sistem akademik.
-- Notification atau pengumuman otomatis.
-- Import data terjadwal dari sistem eksternal.
+- Custom result page templates.
+- API integration with academic systems.
+- Automatic notifications or announcements.
+- Scheduled data import from external systems.
 
 ---
 
@@ -504,4 +504,4 @@ Fitur yang dapat dikembangkan pada versi berikutnya:
 
 One Platform. Unlimited School Checking Services.
 
-Oh My School bukan aplikasi cek kelulusan atau cek nilai, tetapi sebuah engine yang memungkinkan sekolah membangun berbagai layanan informasi siswa secara dinamis.
+Oh My School is not a graduation checker or a score checker application, but rather an engine that allows schools to dynamically build a variety of student information services.

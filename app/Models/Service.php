@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Enums\SearchMode;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use InvalidArgumentException;
+use Qopiku\FilamentSqids\Traits\HasSqids;
 
 class Service extends Model
 {
+    use HasSqids;
+
     protected $fillable = [
         'name',
         'slug',
@@ -27,6 +30,7 @@ class Service extends Model
     {
         return [
             'is_active' => 'boolean',
+            'search_mode' => SearchMode::class,
             'start_date' => 'date',
             'end_date' => 'date',
             'sort_order' => 'integer',
@@ -37,14 +41,20 @@ class Service extends Model
 
     public function scopeActive(Builder $query): Builder
     {
-        return $query
-            ->where('is_active', true)
-            ->where(function (Builder $query) {
-                $query->whereNull('start_date')->orWhere('start_date', '<=', today());
-            })
-            ->where(function (Builder $query) {
-                $query->whereNull('end_date')->orWhere('end_date', '>=', today());
-            });
+        return $query->where('is_active', true);
+    }
+
+    public function isWithinDateRange(): bool
+    {
+        if ($this->start_date && $this->start_date->isAfter(today())) {
+            return false;
+        }
+
+        if ($this->end_date && $this->end_date->isBefore(today())) {
+            return false;
+        }
+
+        return true;
     }
 
     public function scopeOrdered(Builder $query): Builder
@@ -75,14 +85,14 @@ class Service extends Model
         return $this->hasMany(SearchLog::class);
     }
 
-    public function validateIdentifiers(array $fields): void
+    public function validateIdentifiers(array $fields): bool
     {
         $identifierCount = collect($fields)
             ->where('is_identifier', true)
             ->count();
 
-        if ($identifierCount > 3) {
-            throw new InvalidArgumentException('Maximum 3 identifiers allowed per service.');
+        if ($identifierCount > 5) {
+            return false;
         }
 
         $usedOrders = [];
@@ -90,7 +100,7 @@ class Service extends Model
         foreach ($fields as &$field) {
             if (! empty($field['is_identifier'])) {
                 if (empty($field['identifier_order'])) {
-                    $available = array_diff([1, 2, 3], $usedOrders);
+                    $available = array_diff([1, 2, 3, 4, 5], $usedOrders);
                     $field['identifier_order'] = ! empty($available) ? min($available) : null;
                 }
                 $usedOrders[] = $field['identifier_order'];
@@ -98,5 +108,7 @@ class Service extends Model
                 $field['identifier_order'] = null;
             }
         }
+
+        return true;
     }
 }

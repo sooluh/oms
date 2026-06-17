@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Services\Tables;
 
+use App\Enums\SearchMode;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -25,7 +26,7 @@ class ServiceTable
                     ->searchable(),
 
                 TextColumn::make('search_mode')
-                    ->label('Mode')
+                    ->label('Search Mode')
                     ->badge(),
 
                 TextColumn::make('start_date')
@@ -43,15 +44,13 @@ class ServiceTable
             ])
             ->filters([
                 TernaryFilter::make('is_active')
-                    ->label('Active Status'),
+                    ->label('Active Status')
+                    ->native(false),
 
                 SelectFilter::make('search_mode')
                     ->label('Search Mode')
                     ->native(false)
-                    ->options([
-                        'OR' => 'OR',
-                        'AND' => 'AND',
-                    ]),
+                    ->options(SearchMode::class),
             ])
             ->recordActions([
                 EditAction::make(),

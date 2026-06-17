@@ -20,6 +20,8 @@ use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Qopiku\FilamentSqids\Plugin\SqidsPlugin;
+use YousefAman\ModalRepeater\ModalRepeaterPlugin;
 
 class StudioPanelProvider extends PanelProvider
 {
@@ -46,6 +48,8 @@ class StudioPanelProvider extends PanelProvider
             ])
             ->plugins([
                 PhosphorIcons::make()->bold(),
+                ModalRepeaterPlugin::make(),
+                SqidsPlugin::make(),
             ])
             ->userMenuItems([
                 'profile' => Action::make('profile')
@@ -62,7 +66,6 @@ class StudioPanelProvider extends PanelProvider
                 'success' => Color::Emerald,
                 'warning' => Color::Orange,
             ])
-            ->assets([])
             ->login()
             ->maxContentWidth('full')
             ->breadcrumbs(false)

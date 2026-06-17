@@ -59,6 +59,13 @@ class RecentSearches extends TableWidget
 
                 TextColumn::make('ip_address')
                     ->label('IP Address'),
+
+                TextColumn::make('input_value')
+                    ->label('Input')
+                    ->limit(30)
+                    ->formatStateUsing(fn (string $state): string => json_validate($state)
+                        ? (json_decode($state, true)[1] ?? '-')
+                        : $state),
             ]);
     }
 }

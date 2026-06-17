@@ -1,3 +1,8 @@
+@php
+    use App\Enums\FieldType;
+    use App\Enums\SearchMode;
+@endphp
+
 @extends('layouts.public')
 
 @section('title', $service->name)
@@ -25,6 +30,20 @@
             <div class="mt-10 rounded-xl bg-surface-card p-8 text-center">
                 <p class="text-sm text-muted">This service has not set up search identifiers yet.</p>
             </div>
+        @elseif (! $isOpen)
+            <div class="mt-10 rounded-xl border border-dashed border-hairline bg-surface-card/50 p-8 text-center">
+                <x-phosphor-clock-countdown-bold class="mx-auto h-10 w-10 text-muted-soft" />
+                @php
+                    $message = 'This service is not currently open for searches.';
+
+                    if ($service->start_date && $service->start_date->isFuture()) {
+                        $message = 'This service will be available starting ' . $service->start_date->format('F j, Y') . '.';
+                    } elseif ($service->end_date && $service->end_date->isPast()) {
+                        $message = 'This service was closed on ' . $service->end_date->format('F j, Y') . ' and is no longer available.';
+                    }
+                @endphp
+                <p class="mt-3 text-sm text-muted">{{ $message }}</p>
+            </div>
         @else
             <div class="mt-10 rounded-xl border border-hairline bg-surface-card p-8">
                 <h2 class="text-title-md font-semibold text-ink">Search Your Data</h2>
@@ -34,10 +53,10 @@
                 <form id="search-form"
                     data-public-key="{{ $cryptoService->getPublicKeySpkiBase64() }}"
                     data-search-url="{{ route('service.search', $service->slug) }}"
-                    data-search-mode="{{ $service->search_mode }}"
+                    data-search-mode="{{ $service->search_mode->value }}"
                     class="mt-6 space-y-5">
 
-                    @if ($service->search_mode === 'OR')
+                    @if ($service->search_mode === SearchMode::Or)
                         <div>
                             <label for="search" class="block text-sm font-medium text-body-strong">
                                 Enter {{ $identifiers->pluck('label')->implode(' or ') }}
@@ -48,23 +67,26 @@
                         </div>
                     @else
                         @foreach ($identifiers as $identifier)
-                            @php
-                                $inputType = match ($identifier->type) {
-                                    'date' => 'date',
-                                    'number' => 'number',
-                                    default => 'text',
-                                };
-                            @endphp
                             <div>
                                 <label for="identifier_{{ $identifier->identifier_order }}"
                                     class="block text-sm font-medium text-body-strong">
                                     {{ $identifier->label }}
                                 </label>
-                                <input type="{{ $inputType }}" id="identifier_{{ $identifier->identifier_order }}"
-                                    name="identifiers[{{ $identifier->identifier_order }}]"
-                                    @if ($inputType === 'number') step="any" @endif
-                                    class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink"
-                                    placeholder="Enter {{ $identifier->label }}" autocomplete="off">
+
+                                @if ($identifier->type === FieldType::Boolean)
+                                    <select id="identifier_{{ $identifier->identifier_order }}"
+                                        name="identifiers[{{ $identifier->identifier_order }}]"
+                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink">
+                                        <option value="1">{{ $identifier->true_label ?? 'Yes' }}</option>
+                                        <option value="0">{{ $identifier->false_label ?? 'No' }}</option>
+                                    </select>
+                                @else
+                                    <input type="{{ $identifier->type === FieldType::Date ? 'date' : 'text' }}"
+                                        id="identifier_{{ $identifier->identifier_order }}"
+                                        name="identifiers[{{ $identifier->identifier_order }}]"
+                                        class="mt-1.5 block w-full rounded-md border border-hairline bg-canvas px-4 py-2.5 text-sm text-ink placeholder-muted-soft outline-none transition-all focus:border-ink focus:ring-1 focus:ring-ink"
+                                        placeholder="Enter {{ $identifier->label }}" autocomplete="off">
+                                @endif
                             </div>
                         @endforeach
                     @endif
@@ -94,6 +116,20 @@
         <div>
             <span class="text-sm font-medium text-muted"><span data-label></span></span>
             <p class="mt-0.5 text-base text-ink"><span data-value></span></p>
+        </div>
+    </template>
+
+    <template id="tmpl-field-link">
+        <div>
+            <span class="text-sm font-medium text-muted"><span data-label></span></span>
+            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener" class="text-brand-pink underline underline-offset-2 hover:no-underline"></a></p>
+        </div>
+    </template>
+
+    <template id="tmpl-field-attachment">
+        <div>
+            <span class="text-sm font-medium text-muted"><span data-label></span></span>
+            <p class="mt-0.5 text-base text-ink"><a data-value target="_blank" rel="nofollow noopener" class="inline-flex items-center gap-1.5 text-brand-pink underline underline-offset-2 hover:no-underline"></a></p>
         </div>
     </template>
 

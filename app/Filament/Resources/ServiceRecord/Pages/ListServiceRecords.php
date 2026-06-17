@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\ServiceRecord\Pages;
 
+use App\Enums\FieldType;
 use App\Filament\Resources\ServiceRecord\ServiceRecordResource;
+use App\Filament\Resources\Services\ServiceResource;
 use App\Models\Service;
 use App\Models\ServiceRecord;
 use App\Services\ExportService;
@@ -15,11 +17,11 @@ use Filament\Actions\EditAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
-use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Schemas\Components\Callout;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
@@ -95,8 +97,21 @@ class ListServiceRecords extends ListRecords
                 ->searchable()
                 ->placeholder('-');
 
-            if ($field->type === 'date') {
+            if ($field->type === FieldType::Date) {
                 $column->date();
+            } elseif ($field->type === FieldType::Boolean) {
+                $column->formatStateUsing(fn (mixed $state): ?string => match ($state) {
+                    '1', 1, true => $field->true_label ?? 'Yes',
+                    '0', 0, false => $field->false_label ?? 'No',
+                    default => null,
+                });
+            } elseif ($field->type === FieldType::Link) {
+                $column->url(fn (mixed $state): ?string => $state ?: null)
+                    ->openUrlInNewTab();
+            } elseif ($field->type === FieldType::Attachment) {
+                $column->formatStateUsing(fn (mixed $state): ?string => $state ? __('Download') : null)
+                    ->url(fn (mixed $state): ?string => $state ? Storage::url($state) : null)
+                    ->openUrlInNewTab();
             }
 
             $columns[] = $column;
@@ -115,6 +130,7 @@ class ListServiceRecords extends ListRecords
     {
         return [
             EditAction::make()
+                ->slideOver()
                 ->modalHeading('Edit Record')
                 ->modalWidth(Width::Large)
                 ->schema(fn (): array => $this->getDynamicFormFields())
@@ -149,8 +165,11 @@ class ListServiceRecords extends ListRecords
         return [
             CreateAction::make()
                 ->label('Add Record')
+                ->slideOver()
                 ->modalHeading('Add Record '.$this->serviceModel->name)
                 ->modalWidth(Width::Large)
+                ->modalSubmitAction(fn (?Action $action) => $this->serviceModel->fields()->exists() ? $action : false)
+                ->createAnother(fn (): bool => $this->serviceModel->fields()->exists())
                 ->schema(fn (): array => $this->getDynamicFormFields())
                 ->action(function (array $data): void {
                     $data['service_id'] = $this->serviceModel->id;
@@ -173,19 +192,35 @@ class ListServiceRecords extends ListRecords
             Action::make('import')
                 ->label('Import Data')
                 ->color('info')
+                ->slideOver()
                 ->modalHeading('Import Data '.($this->serviceModel->name ?? ''))
                 ->modalWidth(Width::Large)
                 ->modalCancelActionLabel('Close')
                 ->modalSubmitActionLabel('Preview & Validate')
-                ->modalSubmitAction(fn (?Action $action) => $this->importData === null ? $action : false)
-                ->schema(fn (): array => $this->importData === null ? [
-                    FileUpload::make('file')
-                        ->label('Excel / CSV File')
-                        ->maxSize(51200)
-                        ->required()
-                        ->visibility('private')
-                        ->directory('imports'),
-                ] : [])
+                ->modalSubmitAction(fn (?Action $action) => $this->importData === null && $this->serviceModel->fields()->exists() ? $action : false)
+                ->schema(fn (): array => $this->importData === null ? (
+                    $this->serviceModel->fields()->exists()
+                        ? [
+                            FileUpload::make('file')
+                                ->label('Excel / CSV File')
+                                ->maxSize(51200)
+                                ->required()
+                                ->visibility('private')
+                                ->directory('imports'),
+                        ]
+                        : [
+                            Callout::make()
+                                ->heading('Fields Not Configured')
+                                ->description('This service has no fields configured yet. Please set up the fields before importing data.')
+                                ->color('info')
+                                ->icon('phosphor-wrench-bold')
+                                ->footerActions([
+                                    Action::make('configure')
+                                        ->label('Configure Fields')
+                                        ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
+                                ]),
+                        ]
+                ) : [])
                 ->modalContent(function (): ?View {
                     if ($this->importData === null) {
                         return null;
@@ -229,9 +264,11 @@ class ListServiceRecords extends ListRecords
             Action::make('export')
                 ->label('Export Data')
                 ->color('success')
+                ->slideOver()
                 ->modalHeading('Export Data '.($this->serviceModel->name ?? ''))
                 ->modalWidth(Width::Large)
-                ->schema([
+                ->modalSubmitAction(fn (?Action $action) => $this->serviceModel->fields()->exists() ? $action : false)
+                ->schema(fn (): array => $this->serviceModel->fields()->exists() ? [
                     Select::make('format')
                         ->label('Format')
                         ->options([
@@ -272,6 +309,17 @@ class ListServiceRecords extends ListRecords
                         ->afterOrEqual('start_date')
                         ->visible(fn ($get): bool => $get('filter_type') === 'period')
                         ->required(fn ($get): bool => $get('filter_type') === 'period'),
+                ] : [
+                    Callout::make()
+                        ->heading('Fields Not Configured')
+                        ->description('This service has no fields configured yet. Please set up the fields before exporting data.')
+                        ->color('info')
+                        ->icon('phosphor-wrench-bold')
+                        ->footerActions([
+                            Action::make('configure')
+                                ->label('Configure Fields')
+                                ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
+                        ]),
                 ])
                 ->action(function (array $data) {
                     try {
@@ -304,13 +352,33 @@ class ListServiceRecords extends ListRecords
     {
         $fields = $this->serviceModel->fields()->ordered()->get();
 
+        if ($fields->isEmpty()) {
+            return [
+                Callout::make()
+                    ->heading('Fields Not Configured')
+                    ->description('This service has no fields configured yet. Please set up the fields before adding records.')
+                    ->color('info')
+                    ->icon('phosphor-wrench-bold')
+                    ->footerActions([
+                        Action::make('configure')
+                            ->label('Configure Fields')
+                            ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
+                    ]),
+            ];
+        }
+
         $components = [];
 
         foreach ($fields as $field) {
             $component = match ($field->type) {
-                'date' => DatePicker::make('data.'.$field->name)->native(false),
-                'long_text' => Textarea::make('data.'.$field->name)->rows(3),
-                'number' => TextInput::make('data.'.$field->name)->numeric()->step('any'),
+                FieldType::Date => DatePicker::make('data.'.$field->name)->native(false),
+                FieldType::Attachment => FileUpload::make('data.'.$field->name),
+                FieldType::Boolean => Select::make('data.'.$field->name)
+                    ->options([
+                        '1' => $field->true_label ?? 'Yes',
+                        '0' => $field->false_label ?? 'No',
+                    ])
+                    ->native(false),
                 default => TextInput::make('data.'.$field->name),
             };
 

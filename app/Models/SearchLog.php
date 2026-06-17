@@ -4,9 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Qopiku\FilamentSqids\Traits\HasSqids;
 
 class SearchLog extends Model
 {
+    use HasSqids;
+
     const UPDATED_AT = null;
 
     protected $fillable = [

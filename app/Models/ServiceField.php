@@ -2,18 +2,23 @@
 
 namespace App\Models;
 
+use App\Enums\FieldType;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use InvalidArgumentException;
+use Qopiku\FilamentSqids\Traits\HasSqids;
 
 class ServiceField extends Model
 {
+    use HasSqids;
+
     protected $fillable = [
         'service_id',
         'name',
         'label',
         'type',
+        'true_label',
+        'false_label',
         'required',
         'visible',
         'is_identifier',
@@ -24,6 +29,7 @@ class ServiceField extends Model
     protected function casts(): array
     {
         return [
+            'type' => FieldType::class,
             'required' => 'boolean',
             'visible' => 'boolean',
             'is_identifier' => 'boolean',
@@ -34,7 +40,7 @@ class ServiceField extends Model
 
     protected static function booted(): void
     {
-        static::saving(function (ServiceField $field): void {
+        static::saving(function (ServiceField $field) {
             if ($field->is_identifier) {
                 $existingIdentifiers = ServiceField::query()
                     ->where('service_id', $field->service_id)
@@ -46,10 +52,10 @@ class ServiceField extends Model
 
                 if ($field->identifier_order === null) {
                     $usedOrders = $existingIdentifiers->pluck('identifier_order')->toArray();
-                    $available = collect([1, 2, 3])->diff($usedOrders)->first();
+                    $available = collect([1, 2, 3, 4, 5])->diff($usedOrders)->first();
 
                     if ($available === null) {
-                        throw new InvalidArgumentException('Maximum 3 identifiers allowed per service.');
+                        return false;
                     }
 
                     $field->identifier_order = $available;
@@ -59,7 +65,7 @@ class ServiceField extends Model
                         ->exists();
 
                     if ($duplicate) {
-                        throw new InvalidArgumentException("Identifier order {$field->identifier_order} is already in use.");
+                        return false;
                     }
                 }
             } else {

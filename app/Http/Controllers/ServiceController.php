@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\FieldType;
+use App\Enums\SearchMode;
 use App\Models\SearchLog;
 use App\Models\Service;
 use App\Models\ServiceRecord;
@@ -24,10 +26,10 @@ class ServiceController extends Controller
         $service = Service::active()->where('slug', $slug)->firstOrFail();
 
         $identifiers = $service->identifierFields()->get();
-
         $cryptoService = app(CryptoService::class);
+        $isOpen = $service->isWithinDateRange();
 
-        return view('pages.search', compact('service', 'identifiers', 'cryptoService'));
+        return view('pages.search', compact('service', 'identifiers', 'cryptoService', 'isOpen'));
     }
 
     public function search(Request $request, string $slug)
@@ -47,18 +49,26 @@ class ServiceController extends Controller
         $service = Service::active()->where('slug', $slug)->firstOrFail();
         $identifiers = $service->identifierFields()->get();
 
+        if (! $service->isWithinDateRange()) {
+            $encrypted = $crypto->encryptResponse([
+                'message' => 'This service is not currently open for searches.',
+            ], $aesKey);
+
+            return response($encrypted, 403, ['Content-Type' => 'application/octet-stream']);
+        }
+
         $rules = [];
 
-        if ($service->search_mode === 'OR') {
+        if ($service->search_mode === SearchMode::Or) {
             $rules['search'] = ['required', 'string', 'max:255'];
         } else {
             foreach ($identifiers as $idField) {
                 $fieldRules = ['required', 'max:255'];
 
-                if ($idField->type === 'date') {
+                if ($idField->type === FieldType::Date) {
                     $fieldRules[] = 'date';
-                } elseif ($idField->type === 'number') {
-                    $fieldRules[] = 'numeric';
+                } elseif ($idField->type === FieldType::Boolean) {
+                    $fieldRules[] = 'in:0,1';
                 } else {
                     $fieldRules[] = 'string';
                 }
@@ -116,7 +126,7 @@ class ServiceController extends Controller
 
         $query = ServiceRecord::query()->where('service_id', $service->id);
 
-        if ($service->search_mode === 'OR') {
+        if ($service->search_mode === SearchMode::Or) {
             $searchValue = $validated['search'];
             $inputValue = $searchValue;
 
@@ -152,6 +162,9 @@ class ServiceController extends Controller
             : ['found' => true, 'fields' => $visibleFields->map(fn ($field) => [
                 'label' => $field->label,
                 'value' => $result->first()->data[$field->name] ?? '-',
+                'type' => $field->type->value,
+                'true_label' => $field->true_label,
+                'false_label' => $field->false_label,
             ])];
 
         $encrypted = $crypto->encryptResponse($responseData, $aesKey);

@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Enums\FieldType;
 use App\Models\Service;
 use App\Models\ServiceField;
 use App\Models\ServiceRecord;
@@ -135,12 +136,12 @@ class ImportService
                 }
 
                 if (trim($value) !== '') {
-                    if ($field->type === 'number' && ! is_numeric($value)) {
-                        $rowErrors[$field->name] = "{$field->label} must be a number.";
+                    if ($field->type === FieldType::Date && ! $this->isValidDate($value)) {
+                        $rowErrors[$field->name] = "{$field->label} must be a valid date (YYYY-MM-DD).";
                     }
 
-                    if ($field->type === 'date' && ! $this->isValidDate($value)) {
-                        $rowErrors[$field->name] = "{$field->label} must be a valid date (YYYY-MM-DD).";
+                    if ($field->type === FieldType::Boolean && ! in_array($value, ['0', '1', 0, 1, 'true', 'false', 'yes', 'no'], true)) {
+                        $rowErrors[$field->name] = "{$field->label} must be a boolean value (0/1, yes/no, true/false).";
                     }
                 }
             }

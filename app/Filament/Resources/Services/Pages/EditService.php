@@ -19,6 +19,7 @@ class EditService extends EditRecord
             Action::make('share')
                 ->label('Share & QR Code')
                 ->color('info')
+                ->slideOver()
                 ->modalHeading(fn (): string => 'Share Service '.($this->record->name ?? ''))
                 ->modalWidth(Width::Large)
                 ->modalSubmitAction(false)
