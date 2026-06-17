@@ -2,6 +2,7 @@
 
 namespace App\Providers\Filament;
 
+use Filament\Actions\Action;
 use Filament\Enums\ThemeMode;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
@@ -15,7 +16,9 @@ use Illuminate\Cookie\Middleware\EncryptCookies;
 use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use ToneGabes\Filament\Icons\Enums\Phosphor;
 
 class StudioPanelProvider extends PanelProvider
 {
@@ -41,7 +44,13 @@ class StudioPanelProvider extends PanelProvider
                 DispatchServingFilamentEvent::class,
             ])
             ->plugins([])
-            ->userMenuItems([])
+            ->userMenuItems([
+                'profile' => Action::make('profile')
+                    ->label(fn (): string => Auth::user()->name ?? 'Profile')
+                    ->icon(Phosphor::UserCircleBold)
+                    ->url(fn () => route('filament.studio.pages.profile'))
+                    ->sort(-100),
+            ])
             ->colors([
                 'danger' => Color::Rose,
                 'gray' => Color::Gray,
