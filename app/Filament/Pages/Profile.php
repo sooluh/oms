@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use Filament\Actions\Action;
 use Filament\Facades\Filament;
 use Filament\Forms\Components\TextInput;
@@ -9,6 +10,7 @@ use Filament\Notifications\Notification;
 use Filament\Pages\Concerns\CanUseDatabaseTransactions;
 use Filament\Pages\Page;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\EmbeddedSchema;
 use Filament\Schemas\Components\Form;
 use Filament\Schemas\Components\Tabs;
@@ -78,31 +80,61 @@ class Profile extends Page
         return $schema
             ->components([
                 Tabs::make('Tabs')
+                    ->persistTabInQueryString()
                     ->tabs([
                         Tab::make('Profile')
                             ->schema([
+                                Callout::make()
+                                    ->heading('Profile Editing Disabled')
+                                    ->description('Profile information cannot be changed in demo mode.')
+                                    ->color('warning')
+                                    ->icon('phosphor-lock-bold')
+                                    ->visible(fn (): bool => (bool) config('app.is_demo')),
+
                                 TextInput::make('name')
                                     ->label('Name')
                                     ->required()
-                                    ->maxLength(255),
+                                    ->maxLength(255)
+                                    ->disabled(fn (): bool => (bool) config('app.is_demo')),
 
                                 TextInput::make('email')
                                     ->label('Email')
                                     ->email()
                                     ->required()
                                     ->maxLength(255)
-                                    ->unique(ignoreRecord: true),
+                                    ->unique(ignoreRecord: true)
+                                    ->disabled(fn (): bool => (bool) config('app.is_demo')),
                             ]),
 
                         Tab::make('Password')
                             ->schema([
+                                Callout::make()
+                                    ->heading('Password Change Disabled')
+                                    ->description('Password cannot be changed in demo mode.')
+                                    ->color('warning')
+                                    ->icon('phosphor-lock-bold')
+                                    ->visible(fn (): bool => (bool) config('app.is_demo')),
+
+                                Callout::make()
+                                    ->heading('Change Your Password')
+                                    ->description(
+                                        'You are using the default password. For your account security, please change it immediately.'
+                                    )
+                                    ->color('danger')
+                                    ->icon('phosphor-warning-bold')
+                                    ->visible(
+                                        fn (): bool => ! config('app.is_demo') &&
+                                            Hash::check(EnsurePasswordIsChanged::DEFAULT_PASSWORD, $this->getUser()->password)
+                                    ),
+
                                 TextInput::make('currentPassword')
                                     ->label('Current Password')
                                     ->password()
                                     ->revealable(filament()->arePasswordsRevealable())
                                     ->currentPassword(guard: Filament::getAuthGuard())
                                     ->required(fn (Get $get): bool => filled($get('password')))
-                                    ->dehydrated(false),
+                                    ->dehydrated(false)
+                                    ->disabled(fn (): bool => (bool) config('app.is_demo')),
 
                                 TextInput::make('password')
                                     ->label('New Password')
@@ -111,14 +143,16 @@ class Profile extends Page
                                     ->rule(Password::default())
                                     ->same('passwordConfirmation')
                                     ->dehydrated(fn (#[SensitiveParameter] $state): bool => filled($state))
-                                    ->dehydrateStateUsing(fn (#[SensitiveParameter] $state): string => Hash::make($state)),
+                                    ->dehydrateStateUsing(fn (#[SensitiveParameter] $state): string => Hash::make($state))
+                                    ->disabled(fn (): bool => (bool) config('app.is_demo')),
 
                                 TextInput::make('passwordConfirmation')
                                     ->label('Confirm New Password')
                                     ->password()
                                     ->revealable(filament()->arePasswordsRevealable())
                                     ->required(fn (Get $get): bool => filled($get('password')))
-                                    ->dehydrated(false),
+                                    ->dehydrated(false)
+                                    ->disabled(fn (): bool => (bool) config('app.is_demo')),
                             ]),
                     ]),
             ]);
@@ -154,7 +188,8 @@ class Profile extends Page
         return Action::make('save')
             ->label('Save Changes')
             ->submit('save')
-            ->keyBindings(['mod+s']);
+            ->keyBindings(['mod+s'])
+            ->disabled(fn (): bool => (bool) config('app.is_demo'));
     }
 
     public function save(): void

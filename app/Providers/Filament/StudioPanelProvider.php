@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Pages\Auth\Login;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use Filafly\Icons\Phosphor\Enums\Phosphor;
 use Filafly\Icons\Phosphor\PhosphorIcons;
 use Filament\Actions\Action;
@@ -47,7 +48,10 @@ class StudioPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\Filament\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
-            ->authMiddleware([Authenticate::class])
+            ->authMiddleware([
+                Authenticate::class,
+                EnsurePasswordIsChanged::class,
+            ])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
