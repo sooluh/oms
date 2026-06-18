@@ -19,6 +19,7 @@ class ServiceRecord extends Model
         'identifier_4',
         'identifier_5',
         'data',
+        'attachment_disk',
     ];
 
     protected function casts(): array

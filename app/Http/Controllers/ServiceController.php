@@ -8,10 +8,10 @@ use App\Models\SearchLog;
 use App\Models\Service;
 use App\Models\ServiceRecord;
 use App\Services\CryptoService;
+use App\Services\StorageService;
 use App\Settings\AppSettings;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 
 class ServiceController extends Controller
@@ -26,7 +26,6 @@ class ServiceController extends Controller
     public function show(string $slug)
     {
         $service = Service::active()->where('slug', $slug)->firstOrFail();
-
         $identifiers = $service->identifierFields()->get();
         $cryptoService = app(CryptoService::class);
         $isOpen = $service->isWithinDateRange();
@@ -39,10 +38,8 @@ class ServiceController extends Controller
     {
         /** @var AppSettings $settings */
         $settings = app(AppSettings::class);
-
         /** @var CryptoService $crypto */
         $crypto = app(CryptoService::class);
-
         $service = Service::active()->where('slug', $slug)->firstOrFail();
 
         if ($settings->encryption_enabled) {
@@ -93,9 +90,13 @@ class ServiceController extends Controller
             }
         }
 
-        $validator = Validator::make($formData, $rules, attributes: $identifiers->mapWithKeys(fn ($f) => [
-            'identifiers.'.$f->identifier_order => $f->label,
-        ])->toArray());
+        $validator = Validator::make(
+            $formData,
+            $rules,
+            attributes: $identifiers->mapWithKeys(fn ($f) => [
+                'identifiers.'.$f->identifier_order => $f->label,
+            ])->toArray()
+        );
 
         if ($validator->fails()) {
             $response = [
@@ -103,14 +104,15 @@ class ServiceController extends Controller
             ];
 
             if ($settings->encryption_enabled) {
-                return response($crypto->encryptResponse($response, $aesKey), 422, ['Content-Type' => 'application/octet-stream']);
+                return response($crypto->encryptResponse($response, $aesKey), 422, [
+                    'Content-Type' => 'application/octet-stream',
+                ]);
             }
 
             return response()->json($response, 422);
         }
 
         $validated = $validator->validated();
-
         $ip = $request->ip();
 
         if ($service->max_attempt && $service->attempt_duration) {
@@ -141,7 +143,9 @@ class ServiceController extends Controller
                 ];
 
                 if ($settings->encryption_enabled) {
-                    return response($crypto->encryptResponse($response, $aesKey), 429, ['Content-Type' => 'application/octet-stream']);
+                    return response($crypto->encryptResponse($response, $aesKey), 429, [
+                        'Content-Type' => 'application/octet-stream',
+                    ]);
                 }
 
                 return response()->json($response, 429);
@@ -149,7 +153,6 @@ class ServiceController extends Controller
         }
 
         $visibleFields = $service->fields()->where('visible', true)->ordered()->get();
-
         $query = ServiceRecord::query()->where('service_id', $service->id);
 
         if ($service->search_mode === SearchMode::Or) {
@@ -184,16 +187,29 @@ class ServiceController extends Controller
         ]);
 
         $responseData = $result->isEmpty()
-            ? ['found' => false, 'message' => 'Data not found. Please check your identifier(s) and try again.']
-            : ['found' => true, 'fields' => $visibleFields->filter(fn ($field) => ! is_null($result->first()->data[$field->name] ?? null))->values()->map(fn ($field) => [
-                'label' => $field->label,
-                'value' => $field->type === FieldType::Attachment
-                    ? (($val = $result->first()->data[$field->name] ?? null) ? Storage::disk('public')->url($val) : null)
-                    : ($result->first()->data[$field->name] ?? null),
-                'type' => $field->type->value,
-                'true_label' => $field->true_label,
-                'false_label' => $field->false_label,
-            ])];
+            ? [
+                'found' => false,
+                'message' => 'Data not found. Please check your identifier(s) and try again.',
+            ]
+            : [
+                'found' => true,
+                'fields' => $visibleFields
+                    ->filter(fn ($field) => ! is_null($result->first()->data[$field->name] ?? null))
+                    ->values()
+                    ->map(fn ($field) => [
+                        'label' => $field->label,
+                        'value' => $field->type === FieldType::Attachment
+                            ? (
+                                ($val = $result->first()->data[$field->name] ?? null)
+                                ? app(StorageService::class)->url($val, $result->first()->attachment_disk)
+                                : null
+                            )
+                            : ($result->first()->data[$field->name] ?? null),
+                        'type' => $field->type->value,
+                        'true_label' => $field->true_label,
+                        'false_label' => $field->false_label,
+                    ]),
+            ];
 
         if ($settings->encryption_enabled) {
             return response($crypto->encryptResponse($responseData, $aesKey), 200, ['Content-Type' => 'application/octet-stream']);

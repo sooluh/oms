@@ -1,0 +1,15 @@
+{
+    auto_https off
+    admin off
+
+    storage file_system {
+        root /tmp/caddy
+    }
+}
+
+:80 {
+    root * /app/public
+    encode zstd br gzip
+
+    php_server
+}

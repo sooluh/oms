@@ -9,6 +9,7 @@ use App\Models\Service;
 use App\Models\ServiceRecord;
 use App\Services\ExportService;
 use App\Services\ImportService;
+use App\Services\StorageService;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
@@ -26,6 +27,7 @@ use Filament\Support\Enums\TextSize;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
@@ -121,12 +123,16 @@ class ListServiceRecords extends ListRecords
                         default => null,
                     });
             } elseif ($field->type === FieldType::Link) {
-                $column->url(fn (mixed $state): ?string => $state ?: null)
-                    ->openUrlInNewTab();
+                $column->url(fn (mixed $state): ?string => $state ?: null)->openUrlInNewTab();
             } elseif ($field->type === FieldType::Attachment) {
-                $column->formatStateUsing(fn (mixed $state): ?string => $state ? __('Download') : null)
-                    ->url(fn (mixed $state): ?string => $state ? Storage::disk('public')->url($state) : null)
-                    ->openUrlInNewTab();
+                $column
+                    ->formatStateUsing(fn (mixed $state): ?string => $state ? __('Download') : null)
+                    ->openUrlInNewTab()
+                    ->url(
+                        fn (mixed $state, ServiceRecord $record): ?string => $state
+                            ? app(StorageService::class)->url($state, $record->attachment_disk)
+                            : null
+                    );
             }
 
             if ($i >= 6) {
@@ -200,7 +206,11 @@ class ListServiceRecords extends ListRecords
                         $data[$column] = $data['data'][$idField->name] ?? null;
                     }
 
-                    ServiceRecord::create($data);
+                    $record = ServiceRecord::create($data);
+
+                    $record->updateQuietly([
+                        'attachment_disk' => app(StorageService::class)->diskName(),
+                    ]);
 
                     Notification::make()
                         ->success()
@@ -216,30 +226,43 @@ class ListServiceRecords extends ListRecords
                 ->modalWidth(Width::Large)
                 ->modalCancelActionLabel('Close')
                 ->modalSubmitActionLabel('Preview & Validate')
-                ->modalSubmitAction(fn (?Action $action) => $this->importData === null && $this->serviceModel->fields()->exists() ? $action : false)
-                ->schema(fn (): array => $this->importData === null ? (
-                    $this->serviceModel->fields()->exists()
-                        ? [
-                            FileUpload::make('file')
-                                ->label('Excel / CSV File')
-                                ->maxSize(51200)
-                                ->required()
-                                ->visibility('private')
-                                ->directory('imports'),
-                        ]
-                        : [
-                            Callout::make()
-                                ->heading('Fields Not Configured')
-                                ->description('This service has no fields configured yet. Please set up the fields before importing data.')
-                                ->color('info')
-                                ->icon('phosphor-wrench-bold')
-                                ->footerActions([
-                                    Action::make('configure')
-                                        ->label('Configure Fields')
-                                        ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
-                                ]),
-                        ]
-                ) : [])
+                ->modalSubmitAction(
+                    fn (?Action $action) => $this->importData === null &&
+                        $this->serviceModel->fields()->exists() ? $action : false
+                )
+                ->schema(
+                    fn (): array => $this->importData === null
+                        ? (
+                            $this->serviceModel->fields()->exists()
+                            ? [
+                                FileUpload::make('file')
+                                    ->label('Excel / CSV File')
+                                    ->maxSize(51200)
+                                    ->required()
+                                    ->visibility('private')
+                                    ->directory('imports'),
+                            ]
+                            : [
+                                Callout::make()
+                                    ->heading('Fields Not Configured')
+                                    ->description(
+                                        'This service has no fields configured yet. Please set up the fields before importing data.'
+                                    )
+                                    ->color('info')
+                                    ->icon('phosphor-wrench-bold')
+                                    ->footerActions([
+                                        Action::make('configure')
+                                            ->label('Configure Fields')
+                                            ->url(
+                                                fn (): ?string => $this->serviceModel
+                                                    ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel])
+                                                    : null
+                                            ),
+                                    ]),
+                            ]
+                        )
+                        : []
+                )
                 ->modalContent(function (): ?View {
                     if ($this->importData === null) {
                         return null;
@@ -287,59 +310,69 @@ class ListServiceRecords extends ListRecords
                 ->modalHeading('Export Data '.($this->serviceModel->name ?? ''))
                 ->modalWidth(Width::Large)
                 ->modalSubmitAction(fn (?Action $action) => $this->serviceModel->fields()->exists() ? $action : false)
-                ->schema(fn (): array => $this->serviceModel->fields()->exists() ? [
-                    Select::make('format')
-                        ->label('Format')
-                        ->options([
-                            'xlsx' => 'Excel (.xlsx)',
-                            'csv' => 'CSV (.csv)',
-                        ])
-                        ->native(false)
-                        ->default('xlsx')
-                        ->required(),
+                ->schema(
+                    fn (): array => $this->serviceModel->fields()->exists()
+                        ? [
+                            Select::make('format')
+                                ->label('Format')
+                                ->options([
+                                    'xlsx' => 'Excel (.xlsx)',
+                                    'csv' => 'CSV (.csv)',
+                                ])
+                                ->native(false)
+                                ->default('xlsx')
+                                ->required(),
 
-                    Toggle::make('include_hidden')
-                        ->label('Include Hidden Fields')
-                        ->helperText('Include fields configured as invisible to students.')
-                        ->default(false),
+                            Toggle::make('include_hidden')
+                                ->label('Include Hidden Fields')
+                                ->helperText('Include fields configured as invisible to students.')
+                                ->default(false),
 
-                    Select::make('filter_type')
-                        ->label('Filter Records')
-                        ->options([
-                            'all' => 'All Records',
-                            'period' => 'By Import Period',
-                        ])
-                        ->native(false)
-                        ->default('all')
-                        ->live()
-                        ->required(),
+                            Select::make('filter_type')
+                                ->label('Filter Records')
+                                ->options([
+                                    'all' => 'All Records',
+                                    'period' => 'By Import Period',
+                                ])
+                                ->native(false)
+                                ->default('all')
+                                ->live()
+                                ->required(),
 
-                    DatePicker::make('start_date')
-                        ->label('Start Date')
-                        ->placeholder('Select start date')
-                        ->native(false)
-                        ->visible(fn ($get): bool => $get('filter_type') === 'period')
-                        ->required(fn ($get): bool => $get('filter_type') === 'period'),
+                            DatePicker::make('start_date')
+                                ->label('Start Date')
+                                ->placeholder('Select start date')
+                                ->native(false)
+                                ->visible(fn ($get): bool => $get('filter_type') === 'period')
+                                ->required(fn ($get): bool => $get('filter_type') === 'period'),
 
-                    DatePicker::make('end_date')
-                        ->label('End Date')
-                        ->placeholder('Select end date')
-                        ->native(false)
-                        ->afterOrEqual('start_date')
-                        ->visible(fn ($get): bool => $get('filter_type') === 'period')
-                        ->required(fn ($get): bool => $get('filter_type') === 'period'),
-                ] : [
-                    Callout::make()
-                        ->heading('Fields Not Configured')
-                        ->description('This service has no fields configured yet. Please set up the fields before exporting data.')
-                        ->color('info')
-                        ->icon('phosphor-wrench-bold')
-                        ->footerActions([
-                            Action::make('configure')
-                                ->label('Configure Fields')
-                                ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
-                        ]),
-                ])
+                            DatePicker::make('end_date')
+                                ->label('End Date')
+                                ->placeholder('Select end date')
+                                ->native(false)
+                                ->afterOrEqual('start_date')
+                                ->visible(fn ($get): bool => $get('filter_type') === 'period')
+                                ->required(fn ($get): bool => $get('filter_type') === 'period'),
+                        ]
+                        : [
+                            Callout::make()
+                                ->heading('Fields Not Configured')
+                                ->description(
+                                    'This service has no fields configured yet. Please set up the fields before exporting data.'
+                                )
+                                ->color('info')
+                                ->icon('phosphor-wrench-bold')
+                                ->footerActions([
+                                    Action::make('configure')
+                                        ->label('Configure Fields')
+                                        ->url(
+                                            fn (): ?string => $this->serviceModel
+                                                ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel])
+                                                : null
+                                        ),
+                                ]),
+                        ]
+                )
                 ->action(function (array $data) {
                     try {
                         $exportService = app(ExportService::class);
@@ -375,13 +408,19 @@ class ListServiceRecords extends ListRecords
             return [
                 Callout::make()
                     ->heading('Fields Not Configured')
-                    ->description('This service has no fields configured yet. Please set up the fields before adding records.')
+                    ->description(
+                        'This service has no fields configured yet. Please set up the fields before adding records.'
+                    )
                     ->color('info')
                     ->icon('phosphor-wrench-bold')
                     ->footerActions([
                         Action::make('configure')
                             ->label('Configure Fields')
-                            ->url(fn (): ?string => $this->serviceModel ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel]) : null),
+                            ->url(
+                                fn (): ?string => $this->serviceModel
+                                    ? ServiceResource::getUrl('edit', ['record' => $this->serviceModel])
+                                    : null
+                            ),
                     ]),
             ];
         }
@@ -391,16 +430,53 @@ class ListServiceRecords extends ListRecords
         foreach ($fields as $field) {
             $component = match ($field->type) {
                 FieldType::Date => DatePicker::make('data.'.$field->name)->native(false),
+
                 FieldType::Attachment => FileUpload::make('data.'.$field->name)
-                    ->disk('public')
+                    ->disk(fn (): string => app(StorageService::class)->diskName())
                     ->directory('uploads')
-                    ->visibility('public'),
+                    ->visibility('public')
+                    ->fetchFileInformation(false)
+                    ->saveUploadedFileUsing(function (UploadedFile $file, ?ServiceRecord $record) {
+                        $storage = app(StorageService::class);
+                        $disk = $storage->disk();
+                        $diskName = $storage->diskName();
+                        $path = $disk->putFile('uploads', $file);
+
+                        if ($record) {
+                            $record->updateQuietly(['attachment_disk' => $diskName]);
+                        }
+
+                        return $path;
+                    })
+                    ->getUploadedFileUsing(function (string $file) use ($field): ?array {
+                        $record = ServiceRecord::where('data->'.$field->name, $file)->first();
+
+                        if (! $record) {
+                            return null;
+                        }
+
+                        $storage = app(StorageService::class);
+                        $disk = $storage->disk($record->attachment_disk);
+
+                        if (! $disk->exists($file)) {
+                            return null;
+                        }
+
+                        return [
+                            'name' => basename($file),
+                            'size' => $disk->size($file),
+                            'type' => $disk->mimeType($file),
+                            'url' => $storage->url($file, $record->attachment_disk),
+                        ];
+                    }),
+
                 FieldType::Boolean => Select::make('data.'.$field->name)
                     ->options([
                         '1' => $field->true_label ?? 'Yes',
                         '0' => $field->false_label ?? 'No',
                     ])
                     ->native(false),
+
                 default => TextInput::make('data.'.$field->name),
             };
 

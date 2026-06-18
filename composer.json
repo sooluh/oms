@@ -13,8 +13,10 @@
         "guava/filament-icon-picker": "^4.0",
         "laravel/framework": "^13.8",
         "laravel/tinker": "^3.0",
+        "league/flysystem-aws-s3-v3": "^3.34",
         "marcelweidum/filament-expiration-notice": "^1.0",
         "openspout/openspout": "^4.32",
+        "predis/predis": "^3.5",
         "qopiku/filament-sqids": "^0.1.0",
         "spatie/laravel-data": "^4.23",
         "yousefaman/filament-modal-repeater": "^1.1"

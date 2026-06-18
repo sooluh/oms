@@ -1,0 +1,34 @@
+services:
+  oms:
+    image: ghcr.io/sooluh/oms:latest
+    hostname: oms
+    read_only: true
+    restart: always
+    env_file:
+      - .env
+    volumes:
+      - storage:/app/storage
+      - bootstrap-cache:/app/bootstrap/cache
+      - tmp:/tmp
+      - caddy-config:/config
+      - caddy-data:/data
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    # deploy:
+    #   restart_policy:
+    #     condition: any
+    #     delay: 5s
+    #     max_attempts: 5
+    #     window: 120s
+
+volumes:
+  storage:
+    name: oms-storage
+  bootstrap-cache:
+    name: oms-cache
+  tmp:
+    name: oms-tmp
+  caddy-config:
+    name: oms-caddy-config
+  caddy-data:
+    name: oms-caddy-data
