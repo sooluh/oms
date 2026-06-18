@@ -14,6 +14,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Pages\SettingsPage;
 use Filament\Schemas\Components\Actions;
+use Filament\Schemas\Components\Callout;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
@@ -61,12 +62,22 @@ class Settings extends SettingsPage
                 Section::make('Storage')
                     ->description('Configure storage for file uploads (attachments).')
                     ->schema([
+                        Callout::make()
+                            ->heading('Disk Configuration Locked')
+                            ->description(
+                                'Storage settings are disabled in demo mode to prevent abuse and unauthorized configuration changes.'
+                            )
+                            ->color('warning')
+                            ->icon('phosphor-lock-bold')
+                            ->visible(fn (): bool => (bool) config('app.is_demo')),
+
                         Select::make('upload_disk')
                             ->label('Upload Disk')
                             ->required()
                             ->live()
                             ->native(false)
                             ->allowHtml()
+                            ->disabled(fn (): bool => (bool) config('app.is_demo'))
                             ->options(
                                 fn (): array => collect(StorageDriver::cases())
                                     ->mapWithKeys(fn ($case) => [
@@ -80,7 +91,10 @@ class Settings extends SettingsPage
 
                         Section::make('S3 Configuration')
                             ->description('Enter your Amazon S3 or compatible object storage credentials.')
-                            ->visible(fn ($get): bool => $get('upload_disk') === StorageDriver::S3->value)
+                            ->visible(
+                                fn ($get): bool => ! config('app.is_demo') &&
+                                    $get('upload_disk') === StorageDriver::S3->value
+                            )
                             ->icon('phosphor-cloud-bold')
                             ->columns(2)
                             ->schema([
@@ -98,7 +112,9 @@ class Settings extends SettingsPage
 
                                 TextInput::make('s3_region')
                                     ->label('Region')
-                                    ->helperText('Defaults to us-east-1. Change only if your bucket is in a different region.')
+                                    ->helperText(
+                                        'Defaults to us-east-1. Change only if your bucket is in a different region.'
+                                    )
                                     ->placeholder('us-east-1')
                                     ->maxLength(255),
 
@@ -128,7 +144,10 @@ class Settings extends SettingsPage
                             ]),
 
                         Section::make('Test Connection')
-                            ->visible(fn ($get): bool => $get('upload_disk') === StorageDriver::S3->value)
+                            ->visible(
+                                fn ($get): bool => ! config('app.is_demo') &&
+                                    $get('upload_disk') === StorageDriver::S3->value
+                            )
                             ->schema([
                                 Actions::make([
                                     Action::make('test_s3_connection')

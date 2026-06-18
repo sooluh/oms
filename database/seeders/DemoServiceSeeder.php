@@ -12,9 +12,214 @@ class DemoServiceSeeder extends Seeder
 {
     public function run(): void
     {
+        $admission = Service::create([
+            'name' => 'Admission',
+            'slug' => 'admission',
+            'icon' => 'phosphor-student-bold',
+            'description' => 'Look up your new student admission status, including your assigned session, room, and document verification schedule.',
+            'is_active' => true,
+            'start_date' => null,
+            'end_date' => null,
+            'search_mode' => SearchMode::Or,
+            'max_attempt' => 10,
+            'attempt_duration' => 5,
+            'sort_order' => 1,
+        ]);
+
+        $admissionFields = [
+            [
+                'name' => 'student_number',
+                'label' => 'Student Number',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => true,
+                'identifier_order' => 1,
+                'sort_order' => 1,
+            ],
+            [
+                'name' => 'sequence_number',
+                'label' => 'Sequence Number',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 2,
+            ],
+            [
+                'name' => 'description',
+                'label' => 'Description',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 3,
+            ],
+            [
+                'name' => 'full_name',
+                'label' => 'Full Name',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 4,
+            ],
+            [
+                'name' => 'gender',
+                'label' => 'Gender',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 5,
+            ],
+            [
+                'name' => 'phone_number',
+                'label' => 'Phone Number',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 6,
+            ],
+            [
+                'name' => 'origin_school',
+                'label' => 'Origin School',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 7,
+            ],
+            [
+                'name' => 'admission_track',
+                'label' => 'Admission Track',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 8,
+            ],
+            [
+                'name' => 'session',
+                'label' => 'Session',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 9,
+            ],
+            [
+                'name' => 'room',
+                'label' => 'Room',
+                'type' => FieldType::Text,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 10,
+            ],
+            [
+                'name' => 'verification_date',
+                'label' => 'Verification Date',
+                'type' => FieldType::Date,
+                'required' => true,
+                'visible' => true,
+                'is_identifier' => false,
+                'identifier_order' => null,
+                'sort_order' => 11,
+            ],
+        ];
+
+        $admission->fields()->createMany($admissionFields);
+
+        $admissionRecords = [
+            [
+                'student_number' => '3234567890',
+                'sequence_number' => '001',
+                'description' => 'Ruang 1 Kursi 1',
+                'full_name' => 'Aulia Rahmawati',
+                'gender' => 'Female',
+                'phone_number' => '081234567890',
+                'origin_school' => 'SMP Negeri 1 Jakarta',
+                'admission_track' => 'Prestasi',
+                'session' => 'Pagi (07.45 - 12.00)',
+                'room' => 'Ruang 1',
+                'verification_date' => '2026-06-04',
+            ],
+            [
+                'student_number' => '3234567891',
+                'sequence_number' => '002',
+                'description' => 'Ruang 1 Kursi 2',
+                'full_name' => 'Fajar Nugroho',
+                'gender' => 'Male',
+                'phone_number' => '082345678901',
+                'origin_school' => 'SMP Negeri 3 Bandung',
+                'admission_track' => 'Domisili',
+                'session' => 'Pagi (07.45 - 12.00)',
+                'room' => 'Ruang 1',
+                'verification_date' => '2026-06-04',
+            ],
+            [
+                'student_number' => '3234567892',
+                'sequence_number' => '003',
+                'description' => 'Ruang 2 Kursi 1',
+                'full_name' => 'Mega Lestari',
+                'gender' => 'Female',
+                'phone_number' => '083456789012',
+                'origin_school' => 'MTs Negeri 2 Surabaya',
+                'admission_track' => 'Afirmasi',
+                'session' => 'Siang (12.30 - 17.00)',
+                'room' => 'Ruang 2',
+                'verification_date' => '2026-06-05',
+            ],
+            [
+                'student_number' => '3234567893',
+                'sequence_number' => '004',
+                'description' => 'Ruang 2 Kursi 2',
+                'full_name' => 'Bagas Setiawan',
+                'gender' => 'Male',
+                'phone_number' => '084567890123',
+                'origin_school' => 'SMP Swasta Al-Azhar Yogyakarta',
+                'admission_track' => 'Mutasi',
+                'session' => 'Siang (12.30 - 17.00)',
+                'room' => 'Ruang 2',
+                'verification_date' => '2026-06-05',
+            ],
+            [
+                'student_number' => '3234567894',
+                'sequence_number' => '005',
+                'description' => 'Ruang 3 Kursi 1',
+                'full_name' => 'Nadia Kusuma',
+                'gender' => 'Female',
+                'phone_number' => '085678901234',
+                'origin_school' => 'SMP Negeri 5 Semarang',
+                'admission_track' => 'Prestasi',
+                'session' => 'Pagi (07.45 - 12.00)',
+                'room' => 'Ruang 3',
+                'verification_date' => '2026-06-04',
+            ],
+        ];
+
+        foreach ($admissionRecords as $data) {
+            ServiceRecord::create([
+                'service_id' => $admission->id,
+                'identifier_1' => $data['student_number'],
+                'data' => $data,
+            ]);
+        }
+
         $nisn = Service::create([
-            'name' => 'Cek NISN',
-            'slug' => 'cek-nisn',
+            'name' => 'Student ID Lookup',
+            'slug' => 'student-id-lookup',
             'icon' => 'phosphor-magnifying-glass-bold',
             'description' => 'Check your National Student Identification Number (NISN) and personal data registered with the Ministry of Education.',
             'is_active' => true,
@@ -23,7 +228,7 @@ class DemoServiceSeeder extends Seeder
             'search_mode' => SearchMode::And,
             'max_attempt' => 10,
             'attempt_duration' => 5,
-            'sort_order' => 1,
+            'sort_order' => 2,
         ]);
 
         $nisnFields = [
@@ -167,8 +372,8 @@ class DemoServiceSeeder extends Seeder
         }
 
         $lulus = Service::create([
-            'name' => 'Cek Kelulusan',
-            'slug' => 'cek-kelulusan',
+            'name' => 'Graduation Status',
+            'slug' => 'graduation-status',
             'icon' => 'phosphor-graduation-cap-bold',
             'description' => 'Verify your graduation status and download official graduation certificates and supporting documents.',
             'is_active' => true,
@@ -177,7 +382,7 @@ class DemoServiceSeeder extends Seeder
             'search_mode' => SearchMode::Or,
             'max_attempt' => 10,
             'attempt_duration' => 5,
-            'sort_order' => 2,
+            'sort_order' => 3,
         ]);
 
         $lulusFields = [

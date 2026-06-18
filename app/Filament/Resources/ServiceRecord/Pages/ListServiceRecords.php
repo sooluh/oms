@@ -23,6 +23,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
 use Filament\Schemas\Components\Callout;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Support\Enums\TextSize;
 use Filament\Support\Enums\Width;
 use Filament\Tables\Columns\TextColumn;
@@ -458,7 +459,11 @@ class ListServiceRecords extends ListRecords
                         $storage = app(StorageService::class);
                         $disk = $storage->disk($record->attachment_disk);
 
-                        if (! $disk->exists($file)) {
+                        try {
+                            if (! $disk->exists($file)) {
+                                return null;
+                            }
+                        } catch (Throwable) {
                             return null;
                         }
 
@@ -485,6 +490,34 @@ class ListServiceRecords extends ListRecords
                 ->required($field->required);
 
             $components[] = $component;
+
+            if ($field->type === FieldType::Attachment) {
+                $fieldName = $field->name;
+
+                $components[] = Callout::make()
+                    ->heading('File Not Found')
+                    ->description(
+                        'The file stored in this record is no longer accessible. You can re-upload a new file to replace it.'
+                    )
+                    ->color('warning')
+                    ->icon('phosphor-warning-bold')
+                    ->visible(function (Get $get, ?ServiceRecord $record) use ($fieldName): bool {
+                        $file = $get('data.'.$fieldName);
+
+                        if (! $file || ! $record) {
+                            return false;
+                        }
+
+                        $storage = app(StorageService::class);
+                        $disk = $storage->disk($record->attachment_disk);
+
+                        try {
+                            return ! $disk->exists($file);
+                        } catch (Throwable) {
+                            return true;
+                        }
+                    });
+            }
         }
 
         return $components;

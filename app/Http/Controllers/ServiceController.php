@@ -194,15 +194,31 @@ class ServiceController extends Controller
             : [
                 'found' => true,
                 'fields' => $visibleFields
-                    ->filter(fn ($field) => ! is_null($result->first()->data[$field->name] ?? null))
+                    ->filter(function ($field) use ($result) {
+                        $record = $result->first();
+                        $val = $record->data[$field->name] ?? null;
+
+                        if (is_null($val)) {
+                            return false;
+                        }
+
+                        if ($field->type === FieldType::Attachment) {
+                            try {
+                                return app(StorageService::class)->disk($record->attachment_disk)->exists($val);
+                            } catch (\Throwable) {
+                                return false;
+                            }
+                        }
+
+                        return true;
+                    })
                     ->values()
                     ->map(fn ($field) => [
                         'label' => $field->label,
                         'value' => $field->type === FieldType::Attachment
-                            ? (
-                                ($val = $result->first()->data[$field->name] ?? null)
-                                ? app(StorageService::class)->url($val, $result->first()->attachment_disk)
-                                : null
+                            ? app(StorageService::class)->url(
+                                $result->first()->data[$field->name],
+                                $result->first()->attachment_disk
                             )
                             : ($result->first()->data[$field->name] ?? null),
                         'type' => $field->type->value,
