@@ -24,7 +24,7 @@ echo "=> Caching Laravel configuration..."
 php artisan config:cache --no-interaction
 
 echo "=> Running migrations..."
-php artisan migrate --force --no-interaction
+php artisan migrate --force --no-interaction --isolated
 echo "=> Migrations complete."
 
 echo "=> Running Filament optimizations..."

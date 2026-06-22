@@ -3,25 +3,6 @@ FROM dunglas/frankenphp:1.11.1-php8.4-alpine AS composer-builder
 
 WORKDIR /app
 
-RUN apk add --no-cache \
-    icu-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    gmp-dev \
-    && install-php-extensions \
-    bcmath \
-    exif \
-    gd \
-    gmp \
-    intl \
-    pdo_mysql \
-    pdo_pgsql \
-    pdo_sqlite \
-    pgsql \
-    zip
-
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 COPY composer.json composer.lock ./
@@ -32,7 +13,8 @@ RUN composer install \
     --no-interaction \
     --no-progress \
     --no-scripts \
-    --no-autoloader
+    --no-autoloader \
+    --ignore-platform-reqs
 
 COPY app ./app
 COPY bootstrap ./bootstrap

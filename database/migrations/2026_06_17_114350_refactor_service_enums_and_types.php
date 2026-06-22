@@ -32,6 +32,11 @@ return new class extends Migration
             FieldType::Text->value,
         ]);
 
+        if (DB::getDriverName() === 'pgsql') {
+            DB::statement('ALTER TABLE services ALTER COLUMN search_mode TYPE smallint USING (search_mode::smallint)');
+            DB::statement('ALTER TABLE service_fields ALTER COLUMN type TYPE smallint USING (type::smallint)');
+        }
+
         Schema::table('services', function (Blueprint $table) {
             $table->tinyInteger('search_mode')->default(SearchMode::Or->value)->change();
         });
