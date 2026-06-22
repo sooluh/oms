@@ -6,13 +6,15 @@ use App\Models\SearchLog;
 use App\Models\Service;
 use App\Models\ServiceField;
 use App\Models\ServiceRecord;
+use App\Models\User;
 use App\Settings\AppSettings;
-use Database\Seeders\DemoServiceSeeder;
+use Database\Seeders\DatabaseSeeder;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DemoController extends Controller
 {
-    public function reset(Request $request)
+    public function reset(Request $request): JsonResponse
     {
         if (! config('app.is_demo')) {
             return response()->json(['message' => 'Demo mode is not enabled.'], 403);
@@ -29,8 +31,9 @@ class DemoController extends Controller
         ServiceRecord::query()->delete();
         ServiceField::query()->delete();
         Service::query()->delete();
+        User::query()->delete();
 
-        (new DemoServiceSeeder)->run();
+        (new DatabaseSeeder)->run();
         app(AppSettings::class)->resetToDefaults();
 
         return response()->json(['message' => 'Demo data reset successfully.']);
