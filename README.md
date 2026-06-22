@@ -25,7 +25,7 @@ Instead of building and maintaining separate applications for graduation status,
 - PHP 8.4
 - MySQL 8.0+ or MariaDB 10.6+
 - Composer 2
-- Node.js 20+ with Bun
+- Bun 1.3+ (or Node.js 20+ with Bun)
 
 ## Deployment
 
@@ -38,20 +38,27 @@ git clone https://github.com/sooluh/oms.git
 cd oms
 ```
 
-**2. Install dependencies**
+**2. Install and configure**
+
+You can use the built-in setup script:
 
 ```bash
-composer install --no-dev --optimize-autoloader
-bun install
-bun run build
+composer run setup
 ```
 
-**3. Configure environment**
+_Note: This copies `.env.example` to `.env`, generates the application key, installs Composer and Bun dependencies, and builds frontend assets._
+
+Alternatively, run the steps manually:
 
 ```bash
+composer install
+bun install
+bun run build
 cp .env.example .env
 php artisan key:generate
 ```
+
+**3. Configure environment**
 
 Edit `.env` with your database credentials and other settings:
 
@@ -76,7 +83,7 @@ php artisan db:seed
 
 **5. Log in to the admin panel**
 
-The default admin credentials are:
+Log in to the admin panel at `/studio` (e.g. `http://localhost:8000/studio` or `https://your-domain.com/studio`). The default admin credentials are:
 
 - **Email:** `admin@oms.my.id`
 - **Password:** `ohmyschool`
@@ -92,10 +99,20 @@ php artisan storage:link
 
 **7. Serve the application**
 
-For development:
+For development, use the concurrent dev script:
+
+```bash
+composer run dev
+```
+
+_This starts the Laravel development server, the queue worker, the log tailer (Pail), and the Vite build process concurrently._
+
+Alternatively, you can run them manually in separate sessions:
 
 ```bash
 php artisan serve
+# and in another session:
+bun run dev
 ```
 
 For production, point your web server (Nginx, Apache, or Caddy) to the `public/` directory and ensure `php-fpm` or equivalent is running.
@@ -146,7 +163,7 @@ The container automatically runs migrations and caches configuration on startup 
 
 **3. Log in to the admin panel**
 
-The default admin credentials are:
+Log in to the admin panel at `/studio` (e.g. `http://localhost:8000/studio`). The default admin credentials are:
 
 - **Email:** `admin@oms.my.id`
 - **Password:** `ohmyschool`
@@ -181,7 +198,7 @@ docker compose up -d
 
 **4. Log in to the admin panel**
 
-The default admin credentials are:
+Log in to the admin panel at `/studio` (e.g. `http://localhost:8000/studio`). The default admin credentials are:
 
 - **Email:** `admin@oms.my.id`
 - **Password:** `ohmyschool`
@@ -198,7 +215,34 @@ docker compose down
 docker compose pull && docker compose up -d
 ```
 
-> The `compose.yml` exposes the app on port 80 by default. Place a reverse proxy (Nginx, Caddy, Traefik) in front of it to terminate TLS and serve over HTTPS.
+> [!NOTE]
+> By default, `compose.yml` does not expose host ports to prevent conflicts when running behind a reverse proxy (like Caddy, Nginx, or Traefik) sharing the same Docker network.
+> If you wish to expose the container directly to a specific host port, add a `ports` section to `compose.yml` under the `oms` service:
+>
+> ```yaml
+> ports:
+>     - "8000:80"
+> ```
+
+---
+
+## Demo Mode
+
+To run the application in demo mode with pre-seeded lookup services (such as Admission, Student ID Lookup, and Graduation Status):
+
+1. Add the following environment variables to your `.env` file:
+
+    ```env
+    APP_IS_DEMO=true
+    APP_DEMO_SECRET=your_secret_token_here
+    ```
+
+2. When `APP_IS_DEMO=true` is set, a warning banner will be displayed at the top of the admin panel, and the database seeder will automatically insert demo services and records upon running `php artisan db:seed`.
+
+3. You can trigger a remote database reset (which deletes search logs, records, fields, and services, then reseeds the demo data and resets application settings to defaults) by sending a request to:
+
+    - URL: `http://localhost:8000/api/demo/reset?key=your_secret_token_here` (or via GET/POST query parameter)
+    - Or with the header: `X-Demo-Secret: your_secret_token_here`
 
 ---
 
