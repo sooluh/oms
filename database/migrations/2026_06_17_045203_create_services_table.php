@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\SearchMode;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -17,7 +18,7 @@ return new class extends Migration
             $table->boolean('is_active')->default(true);
             $table->date('start_date')->nullable();
             $table->date('end_date')->nullable();
-            $table->string('search_mode', 3)->default('OR');
+            $table->tinyInteger('search_mode')->default(SearchMode::Or->value);
             $table->integer('max_attempt')->nullable();
             $table->integer('attempt_duration')->nullable();
             $table->integer('sort_order')->default(0);
