@@ -28,8 +28,8 @@ class SearchChart extends ChartWidget
         $query = SearchLog::query()
             ->select(
                 DB::raw('date(created_at) as date'),
-                DB::raw('sum(case when is_success = 1 then 1 else 0 end) as success_count'),
-                DB::raw('sum(case when is_success = 0 then 1 else 0 end) as failed_count')
+                DB::raw('sum(case when is_success then 1 else 0 end) as success_count'),
+                DB::raw('sum(case when is_success then 0 else 1 end) as failed_count')
             )
             ->where('created_at', '>=', $start->startOfDay())
             ->where('created_at', '<=', $end->endOfDay());
