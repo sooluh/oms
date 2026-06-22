@@ -17,6 +17,9 @@ RUN apk add --no-cache \
     gmp \
     intl \
     pdo_mysql \
+    pdo_pgsql \
+    pdo_sqlite \
+    pgsql \
     zip
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -94,6 +97,9 @@ RUN apk add --no-cache \
     imagick \
     intl \
     pdo_mysql \
+    pdo_pgsql \
+    pdo_sqlite \
+    pgsql \
     redis \
     zip \
     && rm -rf /tmp/* /var/cache/apk/*
