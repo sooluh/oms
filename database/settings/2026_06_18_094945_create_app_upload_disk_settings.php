@@ -6,6 +6,6 @@ return new class extends SettingsMigration
 {
     public function up(): void
     {
-        $this->migrator->add('app.upload_disk', 'public');
+        $this->migrator->add('app.upload_disk', env('FILESYSTEM_DISK', 'public'));
     }
 };

@@ -2,14 +2,13 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Qopiku\FilamentSqids\Traits\HasSqids;
 
 class ServiceRecord extends Model
 {
-    use HasFactory, HasSqids;
+    use HasSqids;
 
     protected $fillable = [
         'service_id',

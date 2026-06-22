@@ -43,6 +43,8 @@ return [
 
     'is_demo' => (bool) env('APP_IS_DEMO', false),
 
+    'demo_secret' => env('APP_DEMO_SECRET'),
+
     /*
     |--------------------------------------------------------------------------
     | Application URL
